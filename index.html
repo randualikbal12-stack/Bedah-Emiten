@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bedah Emiten</title><meta name="theme-color" content="#1B2A23"><link rel="manifest" href="manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EDF1EC;--paper:#FBFCF9;--ink:#1B2A23;--mute:#5E6E66;--line:#D3DCD5;--acc:#0E6655;--acc2:#E3EFEA;--up:#1C7A3B;--down:#B3261E;--warn:#9A6A00;--gold:#F3E7C4;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101815;--paper:#17211D;--ink:#E4ECE7;--mute:#98A89F;--line:#2A3833;--acc:#4FC3A5;--acc2:#1D302A;--up:#5BD281;--down:#FF8A80;--warn:#E6B94A;--gold:#3A3320}}
+:root[data-theme="dark"]{--bg:#101815;--paper:#17211D;--ink:#E4ECE7;--mute:#98A89F;--line:#2A3833;--acc:#4FC3A5;--acc2:#1D302A;--up:#5BD281;--down:#FF8A80;--warn:#E6B94A;--gold:#3A3320}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Figtree,system-ui,-apple-system,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--ink);color:var(--bg)}
+.hbar{max-width:1100px;margin:auto;display:flex;align-items:center;gap:16px;padding:12px 16px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:19px;letter-spacing:-.02em}.brand small{font-weight:500;opacity:.7;font-size:13px;margin-left:6px}
+nav{display:flex;gap:4px;margin-left:auto;overflow-x:auto}
+nav button{background:none;border:0;color:inherit;opacity:.65;font:600 14px Figtree,sans-serif;padding:8px 12px;border-radius:8px;cursor:pointer;white-space:nowrap}
+nav button[aria-current="true"]{opacity:1;background:rgba(255,255,255,.14)}
+main{max-width:1100px;margin:auto;padding:20px 16px 60px}
+h1{font-size:clamp(26px,5vw,38px);letter-spacing:-.03em;line-height:1.1;margin:0 0 6px}
+h2{font-size:20px;letter-spacing:-.01em;margin:0 0 12px}h3{font-size:15px;margin:18px 0 8px}
+p{margin:0 0 10px}.mute{color:var(--mute)}.small{font-size:13px}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+.grid{display:grid;gap:12px}.g2{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+label{font-size:13px;font-weight:600;color:var(--mute);display:block;margin-bottom:4px}
+input,textarea,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 11px}
+textarea{min-height:110px;resize:vertical}
+input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.btn{font:700 15px Figtree,sans-serif;border:0;border-radius:10px;padding:11px 18px;cursor:pointer;background:var(--acc);color:#fff}
+.btn.ghost{background:transparent;color:var(--acc);border:1px solid var(--acc)}.btn.sm{padding:6px 11px;font-size:13px}
+.btn.danger{background:transparent;color:var(--down);border:1px solid var(--down)}
+.btn:disabled{opacity:.5;cursor:default}
+.big-btn{width:100%;font-size:18px;padding:16px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ticker-in{font-size:28px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:10px 14px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chip{background:var(--acc2);color:var(--acc);border:0;border-radius:999px;padding:5px 12px;font:600 13px Figtree,sans-serif;cursor:pointer}
+.chip.x{background:transparent;border:1px solid var(--line);color:var(--mute)}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--paper)}
+thead th{font-size:12px;color:var(--mute);font-weight:700}
+td input{width:120px;padding:4px 6px;text-align:right;font-size:13px}
+.up{color:var(--up)}.down{color:var(--down)}.warn{color:var(--warn)}
+.verdict{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
+.score{width:104px;height:104px;border-radius:50%;display:grid;place-items:center;font-size:36px;font-weight:800;border:7px solid var(--acc)}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.metric{background:var(--paper);padding:11px 13px}.metric b{display:block;font-size:19px}.metric span{font-size:12px;color:var(--mute)}
+.narr{font-family:Newsreader,Georgia,serif;font-size:17px;line-height:1.65;max-width:72ch}
+.narr h4{font-family:Figtree,sans-serif;font-size:15px;margin:16px 0 4px}
+.narr ul{padding-left:20px;margin:4px 0 10px}
+.status{padding:12px 14px;border-radius:10px;background:var(--gold);font-size:14px;margin:12px 0}
+.test{display:flex;gap:8px;padding:4px 0;font-size:14px}
+.tabs2{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:0 0 14px;overflow-x:auto}
+.tabs2 button{background:none;border:0;border-bottom:3px solid transparent;padding:8px 12px;font:600 14px Figtree,sans-serif;color:var(--mute);cursor:pointer;white-space:nowrap}
+.tabs2 button[aria-current="true"]{color:var(--ink);border-color:var(--acc)}
+.chat{display:flex;flex-direction:column;gap:10px;max-height:460px;overflow:auto;padding:4px}
+.msg{padding:10px 13px;border-radius:12px;max-width:90%;white-space:pre-wrap}.msg.u{align-self:flex-end;background:var(--acc);color:#fff}.msg.a{background:var(--bg);font-family:Newsreader,Georgia,serif;font-size:16px}
+.hidden{display:none!important}#result{scroll-margin-top:120px}.issue{padding:8px 12px;border-left:4px solid var(--warn);background:var(--gold);border-radius:6px;margin:6px 0;font-size:14px}.issue.kritis{border-color:var(--down)}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:16px;text-align:center;color:var(--mute);cursor:pointer}
+.thumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.thumbs img{height:60px;border-radius:6px;border:1px solid var(--line)}
+@media (max-width:560px){.verdict{grid-template-columns:1fr}.hbar{gap:6px}nav{margin-left:0;width:100%}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head><body>
+<header><div class="hbar"><div class="brand">Bedah Emiten<small>asisten investasi pribadi</small></div>
+<nav id="nav"><button data-v="bedah" aria-current="true">Bedah saham</button><button data-v="porto">Portofolio &amp; jurnal</button><button data-v="daftar">Emiten tersimpan</button><button data-v="rencana">Rencana<span id="alertBadge"></span></button><button data-v="atur">Pengaturan</button></nav></div></header>
+<main>
+<div id="alertBar" class="issue hidden" style="margin-bottom:14px;cursor:pointer"></div>
+
+<!-- ============ BEDAH ============ -->
+<section id="v-bedah">
+ <div class="panel">
+  <h1>Bedah satu emiten, satu klik.</h1>
+  <p class="mute">Masukkan kode saham. Tambahkan laporan keuangan (foto/tangkapan layar atau teks salinan dari PDF) agar angkanya dari dokumen resmi, bukan dari ingatan AI.</p>
+  <div class="grid g2" style="margin-top:14px">
+   <div><label for="tk">Kode saham</label><input id="tk" class="ticker-in" maxlength="6" placeholder="BBCA" autocomplete="off"></div>
+   <div><label for="px">Harga saham sekarang (Rp)</label><div class="row" style="flex-wrap:nowrap"><input id="px" inputmode="decimal" placeholder="mis. 9.875"><button class="btn ghost sm hidden" id="pxOnline" type="button">Online</button></div><p class="small mute" style="margin-top:4px">Dipakai untuk PER, PBV, dividend yield, margin of safety.</p></div>
+  </div>
+  <h3>Dokumen sumber (disarankan)</h3>
+  <div class="grid g2">
+   <div><label>File PDF / foto laporan keuangan, prospektus, public expose</label>
+    <div class="drop" id="drop" tabindex="0">Ketuk untuk memilih PDF atau gambar<input type="file" id="imgs" accept="image/*,application/pdf" multiple hidden></div>
+    <div class="thumbs" id="thumbs"></div><p class="small mute" id="imgnote"></p></div>
+   <div><label for="doctext">Teks dokumen (salin–tempel dari PDF laporan keuangan / prospektus)</label><textarea id="doctext" placeholder="Tempel neraca, laba rugi, arus kas, catatan penting, isi prospektus…"></textarea></div>
+  </div>
+  <div style="margin-top:14px"><button class="btn big-btn" id="goBtn">Bedah sekarang</button>
+  <div class="row" style="margin-top:8px"><button class="btn ghost sm hidden" id="stopBtn">Hentikan</button><span class="small mute" id="goStatus"></span></div></div>
+  <p class="small mute hidden" id="noAi">AI belum aktif: pilih penyedia AI (ada yang gratis) dan isi kuncinya di tab Pengaturan. Sementara itu Anda tetap bisa mengisi tabel keuangan manual di bawah; semua rasio dihitung otomatis.</p>
+ </div>
+ <div id="result" class="hidden"></div>
+</section>
+
+<!-- ============ PORTOFOLIO ============ -->
+<section id="v-porto" class="hidden">
+ <div class="panel"><h1>Portofolio &amp; jurnal transaksi</h1>
+  <p class="mute">Harga rata-rata dihitung metode rata-rata tertimbang (seperti di sekuritas), biaya beli masuk ke modal, biaya jual mengurangi hasil. 1 lot = 100 lembar.</p>
+  <div class="grid g2" style="margin-top:12px">
+   <div><label for="tr-tk">Kode</label><input id="tr-tk" maxlength="6" style="text-transform:uppercase"></div>
+   <div><label for="tr-type">Jenis</label><select id="tr-type"><option value="buy">Beli</option><option value="sell">Jual</option><option value="div">Dividen diterima</option></select></div>
+   <div><label for="tr-date">Tanggal</label><input id="tr-date" type="date"></div>
+   <div class="trq"><label for="tr-lots">Jumlah lot</label><input id="tr-lots" inputmode="numeric"></div>
+   <div class="trq"><label for="tr-price">Harga per lembar (Rp)</label><input id="tr-price" inputmode="decimal"></div>
+   <div class="trq"><label for="tr-fee">Biaya broker + pajak (Rp)</label><input id="tr-fee" inputmode="decimal" placeholder="0"></div>
+   <div class="trd hidden"><label for="tr-amt">Dividen bersih diterima (Rp)</label><input id="tr-amt" inputmode="decimal"></div>
+   <div><label for="tr-note">Alasan / catatan</label><input id="tr-note" placeholder="mis. beli karena PBV di bawah rata-rata 5 tahun"></div>
+  </div>
+  <div class="row" style="margin-top:12px"><button class="btn" id="addTr">Catat transaksi</button><span class="small" id="trMsg"></span></div>
+ </div>
+ <div class="panel"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Posisi</h2><span class="small mute">Isi harga terakhir untuk melihat untung/rugi belum terealisasi</span><button class="btn ghost sm hidden" id="pxAll">Perbarui semua harga online</button></div><p class="small" id="pxAllMsg"></p>
+  <div class="scroll" style="margin-top:10px"><table id="posTbl"></table></div><div id="posSum" style="margin-top:12px"></div></div>
+ <div class="panel"><h2>Riwayat transaksi</h2><div class="scroll"><table id="trTbl"></table></div></div>
+</section>
+
+<!-- ============ DAFTAR ============ -->
+<section id="v-daftar" class="hidden">
+ <div class="panel"><h1>Emiten tersimpan</h1><p class="mute">Setiap hasil bedah tersimpan otomatis. Buka kembali, perbarui angka, atau bandingkan.</p>
+ <div class="scroll" style="margin-top:12px"><table id="listTbl"></table></div>
+ <div class="row" style="margin-top:14px"><button class="btn ghost sm" id="exportAll">Unduh cadangan data (JSON)</button><label class="btn ghost sm" style="margin:0;color:var(--acc)">Pulihkan dari cadangan<input type="file" id="importAll" accept=".json,application/json" hidden></label></div>
+ <p class="small mute" id="storeNote" style="margin-top:8px"></p></div>
+</section>
+<section id="v-rencana" class="hidden">
+ <div class="panel"><h1>Rencana investasi</h1><p class="mute">Semua angka rencana dihitung rumus tetap: jumlah lot selalu dibulatkan ke bawah, biaya beli ikut dihitung, sisa dana dibawa ke periode berikutnya.</p>
+  <div class="grid g2" style="margin-top:12px"><div><label for="pl-fb">Biaya beli sekuritas Anda (%)</label><input id="pl-fb" inputmode="decimal"></div><div><label for="pl-fs">Biaya jual sekuritas Anda (%, termasuk pajak)</label><input id="pl-fs" inputmode="decimal"></div></div>
+  <p class="small mute" style="margin-top:4px">Samakan dengan tarif di aplikasi sekuritas Anda.</p></div>
+ <div class="panel"><h2>Target harga &amp; peringatan</h2><p class="mute small">Peringatan muncul di bagian atas aplikasi saat dibuka, berdasarkan harga terakhir yang tercatat (manual atau online).</p>
+  <div class="grid g2"><div><label for="tg-tk">Kode</label><input id="tg-tk" maxlength="6" style="text-transform:uppercase"></div><div><label for="tg-buy">Target beli, harga ≤ (Rp)</label><input id="tg-buy" inputmode="decimal"></div><div><label for="tg-sell">Target jual, harga ≥ (Rp)</label><input id="tg-sell" inputmode="decimal"></div><div><label for="tg-stop">Batas rugi / stop loss, harga ≤ (Rp)</label><input id="tg-stop" inputmode="decimal"></div><div><label for="tg-note">Alasan</label><input id="tg-note"></div></div>
+  <div class="row" style="margin-top:10px"><button class="btn" id="tg-add">Simpan target</button><span class="small" id="tg-msg"></span></div>
+  <div class="scroll" style="margin-top:12px"><table id="tgTbl"></table></div></div>
+ <div class="panel"><h2>Target alokasi portofolio</h2>
+  <div class="grid g2"><div><label for="al-cap">Total dana portofolio yang direncanakan (Rp)</label><input id="al-cap" inputmode="decimal"></div></div>
+  <div class="grid g2" style="margin-top:10px"><div><label for="al-tk">Kode</label><input id="al-tk" maxlength="6" style="text-transform:uppercase"></div><div><label for="al-pct">Porsi target (%)</label><input id="al-pct" inputmode="decimal"></div></div>
+  <div class="row" style="margin-top:10px"><button class="btn" id="al-add">Simpan porsi</button><span class="small" id="al-msg"></span></div>
+  <div class="scroll" style="margin-top:12px"><table id="alTbl"></table></div><div id="alSum" class="small" style="margin-top:8px"></div></div>
+ <div class="panel"><h2>Rencana beli bertahap</h2>
+  <div class="grid g2"><div><label for="dc-tk">Kode</label><input id="dc-tk" maxlength="6" style="text-transform:uppercase"></div><div><label for="dc-amt">Dana per bulan (Rp)</label><input id="dc-amt" inputmode="decimal"></div><div><label for="dc-n">Jumlah bulan</label><input id="dc-n" inputmode="numeric"></div><div><label for="dc-start">Mulai bulan</label><input id="dc-start" type="month"></div></div>
+  <div class="row" style="margin-top:10px"><button class="btn" id="dc-add">Buat rencana</button><span class="small" id="dc-msg"></span></div>
+  <div id="dcList" style="margin-top:12px"></div></div>
+</section>
+<section id="v-atur" class="hidden">
+ <div class="panel"><h1>Pengaturan</h1>
+  <h2 style="margin-top:14px">Kecerdasan buatan</h2>
+  <p class="mute small">Pilih penyedia AI. Aturan, pengawal, dan rumus aplikasi berlaku sama untuk semuanya. Kunci hanya disimpan di perangkat ini dan tidak ikut dalam file cadangan.</p>
+  <div class="grid g2"><div><label for="set-prov">Penyedia AI</label><select id="set-prov"><option value="gemini">Google Gemini — ada kuota gratis, bisa baca PDF &amp; foto</option><option value="openai">OpenRouter / Groq — ada model gratis, teks (foto tergantung model)</option><option value="anthropic">Claude (Anthropic) — berbayar, paling teliti</option></select></div>
+  <div><label for="set-key">Kunci API</label><input id="set-key" type="password" autocomplete="off"></div>
+  <div><label for="set-model">Nama model</label><input id="set-model" list="modelList" autocomplete="off"><datalist id="modelList"></datalist></div>
+  <div id="baseBox"><label for="set-base">Alamat server (khusus OpenRouter/Groq)</label><input id="set-base"><div class="row" style="margin-top:6px"><button class="btn ghost sm" type="button" id="presetOR">OpenRouter</button><button class="btn ghost sm" type="button" id="presetGroq">Groq</button></div></div></div>
+  <p class="small mute" id="provHelp" style="margin-top:8px"></p>
+  <div class="row" style="margin-top:10px"><button class="btn" id="saveAi">Simpan &amp; uji koneksi</button><span class="small" id="aiMsg"></span></div>
+  <h2 style="margin-top:26px">Harga saham</h2>
+  <div class="grid g2"><div><label for="set-pmode">Mode harga</label><select id="set-pmode"><option value="offline">Offline — isi manual</option><option value="online">Online — ambil dari penyedia data</option></select></div></div>
+  <div id="onlineBox" class="hidden" style="margin-top:10px"><p class="mute small">Isi sesuai dokumentasi penyedia data harga Anda. Tulis <b>{TICKER}</b> di alamat untuk kode saham. Mode offline tetap bisa dipakai kapan saja.</p>
+   <div class="grid g2"><div><label for="set-url">Alamat (URL) permintaan</label><input id="set-url" placeholder="https://api.penyedia.com/harga/{TICKER}"></div>
+   <div><label for="set-path">Lokasi harga di jawaban JSON</label><input id="set-path" placeholder="data.last_price"></div>
+   <div><label for="set-hn">Nama header kunci (opsional)</label><input id="set-hn" placeholder="X-API-KEY"></div>
+   <div><label for="set-hv">Isi header kunci (opsional)</label><input id="set-hv" type="password" autocomplete="off"></div></div>
+   <div class="row" style="margin-top:10px"><button class="btn ghost sm" id="presetYahoo" type="button">Isi contoh: Yahoo Finance (gratis, tidak resmi, bisa diblokir)</button></div>
+   <div class="row" style="margin-top:10px"><input id="set-test" placeholder="BBCA" style="max-width:120px;text-transform:uppercase"><button class="btn" id="savePx">Simpan &amp; uji ambil harga</button><span class="small" id="pxMsg"></span></div></div>
+ </div>
+ <div class="panel"><h2>Aturan pengawal AI</h2><div class="narr small" style="font-size:15px">
+  <p>AI hanya bertugas <b>membaca dokumen dan menulis tafsiran</b>. Semua rasio, skor, dan valuasi dihitung oleh rumus tetap di aplikasi, bukan oleh AI.</p>
+  <ul><li>Setiap angka yang diekstrak AI diuji identitas akuntansi: aset = liabilitas + ekuitas, pendapatan − beban pokok = laba kotor, aset lancar ≤ total aset, kas ≤ aset lancar, utang berbunga ≤ total liabilitas, dan sejenisnya.</li>
+  <li>Lonjakan antar tahun lebih dari 8× ditandai sebagai salah satuan (ribu/juta/miliar).</li>
+  <li>Jika Anda menempel teks dokumen, setiap angka hasil AI dicari di teks itu. Angka yang tidak ditemukan ditandai "tidak terverifikasi".</li>
+  <li>Jika ada pelanggaran kritis, analisis tertulis tidak dibuat sampai Anda memeriksa dan mengonfirmasi datanya.</li>
+  <li>Setiap persentase dan kelipatan (×) dalam tulisan AI dicocokkan dengan hasil hitungan aplikasi. Yang tidak cocok ditandai.</li>
+  <li>Aturan dan pengawal ini ada di kode aplikasi, jadi berlaku sama untuk Gemini, OpenRouter, Groq, maupun Claude.</li>
+  <li>AI diperintahkan: tidak mengarang angka, tidak memasukkan angka dari catatan samping di luar tabel utama, dan mengisi kosong bila ragu.</li></ul></div></div>
+</section>
+</main>
+
+<script>
+// ===== Mesin perhitungan (deterministik) =====
+const C = {};
+C.num = v => (v === null || v === undefined || v === '' || !isFinite(Number(v))) ? null : Number(v);
+C.div = (a, b) => { a = C.num(a); b = C.num(b); return (a === null || b === null || b === 0) ? null : a / b; };
+C.avg = (a, b) => { a = C.num(a); b = C.num(b); if (a === null) return b; if (b === null) return a; return (a + b) / 2; };
+C.growth = (cur, prev) => { cur = C.num(cur); prev = C.num(prev); if (cur === null || prev === null || prev === 0) return null; return (cur - prev) / Math.abs(prev); };
+C.cagr = (last, first, years) => { last = C.num(last); first = C.num(first); if (last === null || first === null || first <= 0 || last <= 0 || years <= 0) return null; return Math.pow(last / first, 1 / years) - 1; };
+C.sortYears = fin => [...(fin || [])].filter(r => C.num(r.year) !== null).sort((a, b) => a.year - b.year);
+
+// rasio untuk satu tahun (idx dalam array terurut)
+C.ratios = (fin, idx, price) => {
+  const r = fin[idx], p = idx > 0 ? fin[idx - 1] : null, n = C.num;
+  const gp = n(r.grossProfit) !== null ? n(r.grossProfit) : (n(r.revenue) !== null && n(r.cogs) !== null ? n(r.revenue) - n(r.cogs) : null);
+  const fcf = (n(r.cfo) !== null && n(r.capex) !== null) ? n(r.cfo) - Math.abs(n(r.capex)) : null;
+  const eps = C.div(r.netIncome, r.sharesOutstanding);
+  const bvps = C.div(r.equity, r.sharesOutstanding);
+  const dps = n(r.dividendsPaid) !== null ? C.div(Math.abs(n(r.dividendsPaid)), r.sharesOutstanding) : null;
+  const pr = n(price);
+  const mcap = (pr !== null && n(r.sharesOutstanding) !== null) ? pr * n(r.sharesOutstanding) : null;
+  const debt = n(r.totalDebt);
+  const ev = (mcap !== null && debt !== null && n(r.cash) !== null) ? mcap + debt - n(r.cash) : null;
+  const ebitda = (n(r.ebit) !== null && n(r.depreciation) !== null) ? n(r.ebit) + Math.abs(n(r.depreciation)) : null;
+  return {
+    year: r.year,
+    gpm: C.div(gp, r.revenue), opm: C.div(r.operatingProfit, r.revenue), npm: C.div(r.netIncome, r.revenue),
+    roe: C.div(r.netIncome, p ? C.avg(r.equity, p.equity) : r.equity),
+    roa: C.div(r.netIncome, p ? C.avg(r.totalAssets, p.totalAssets) : r.totalAssets),
+    currentRatio: C.div(r.currentAssets, r.currentLiabilities),
+    quickRatio: (n(r.currentAssets) !== null && n(r.inventory) !== null) ? C.div(n(r.currentAssets) - n(r.inventory), r.currentLiabilities) : null,
+    cashRatio: C.div(r.cash, r.currentLiabilities),
+    der: C.div(r.totalLiabilities, r.equity), debtToEquity: C.div(r.totalDebt, r.equity),
+    dar: C.div(r.totalLiabilities, r.totalAssets),
+    interestCoverage: n(r.interestExpense) ? C.div(r.ebit, Math.abs(n(r.interestExpense))) : null,
+    assetTurnover: C.div(r.revenue, p ? C.avg(r.totalAssets, p.totalAssets) : r.totalAssets),
+    fcf, fcfMargin: C.div(fcf, r.revenue), cfoToNi: C.div(r.cfo, r.netIncome),
+    eps, bvps, dps, payout: C.div(n(r.dividendsPaid) !== null ? Math.abs(n(r.dividendsPaid)) : null, r.netIncome),
+    per: (eps !== null && eps > 0) ? C.div(pr, eps) : null, pbv: C.div(pr, bvps), psr: C.div(mcap, r.revenue),
+    divYield: C.div(dps, pr), mcap, ev, evEbitda: (ebitda && ebitda > 0) ? C.div(ev, ebitda) : null,
+    earningsYield: C.div(eps, pr),
+    revGrowth: p ? C.growth(r.revenue, p.revenue) : null, niGrowth: p ? C.growth(r.netIncome, p.netIncome) : null,
+    eqGrowth: p ? C.growth(r.equity, p.equity) : null,
+  };
+};
+
+// Piotroski F-Score (butuh 2 tahun)
+C.piotroski = fin => {
+  if (fin.length < 2) return null;
+  const r = fin[fin.length - 1], p = fin[fin.length - 2], n = C.num;
+  const pp = fin.length >= 3 ? fin[fin.length - 3] : null;
+  const roaT = C.div(r.netIncome, p.totalAssets), roaP = pp ? C.div(p.netIncome, pp.totalAssets) : C.div(p.netIncome, p.totalAssets);
+  const tests = [];
+  const t = (name, v) => tests.push({ name, pass: v === null ? null : !!v });
+  t('ROA positif', roaT === null ? null : roaT > 0);
+  t('Arus kas operasi positif', n(r.cfo) === null ? null : n(r.cfo) > 0);
+  t('ROA naik', (roaT === null || roaP === null) ? null : roaT > roaP);
+  t('Kas operasi > laba bersih (kualitas laba)', (n(r.cfo) === null || n(r.netIncome) === null) ? null : n(r.cfo) > n(r.netIncome));
+  const levT = C.div(r.longTermDebt, r.totalAssets), levP = C.div(p.longTermDebt, p.totalAssets);
+  t('Rasio utang jangka panjang turun', (levT === null || levP === null) ? null : levT <= levP);
+  const crT = C.div(r.currentAssets, r.currentLiabilities), crP = C.div(p.currentAssets, p.currentLiabilities);
+  t('Current ratio naik', (crT === null || crP === null) ? null : crT > crP);
+  t('Tidak menerbitkan saham baru', (n(r.sharesOutstanding) === null || n(p.sharesOutstanding) === null) ? null : n(r.sharesOutstanding) <= n(p.sharesOutstanding));
+  const gm = x => { const g = n(x.grossProfit) !== null ? n(x.grossProfit) : (n(x.revenue) !== null && n(x.cogs) !== null ? n(x.revenue) - n(x.cogs) : null); return C.div(g, x.revenue); };
+  const gT = gm(r), gP = gm(p);
+  t('Margin kotor naik', (gT === null || gP === null) ? null : gT > gP);
+  const atT = C.div(r.revenue, p.totalAssets), atP = pp ? C.div(p.revenue, pp.totalAssets) : C.div(p.revenue, p.totalAssets);
+  t('Perputaran aset naik', (atT === null || atP === null) ? null : atT > atP);
+  const score = tests.filter(x => x.pass === true).length, known = tests.filter(x => x.pass !== null).length;
+  return { score, known, tests };
+};
+
+// Altman Z-Score (model asli, relevan untuk manufaktur/non-keuangan)
+C.altman = (r, price) => {
+  const n = C.num;
+  const ta = n(r.totalAssets); if (!ta) return null;
+  const wc = (n(r.currentAssets) !== null && n(r.currentLiabilities) !== null) ? n(r.currentAssets) - n(r.currentLiabilities) : null;
+  const mve = (n(price) !== null && n(r.sharesOutstanding) !== null) ? n(price) * n(r.sharesOutstanding) : null;
+  const parts = [C.div(wc, ta), C.div(r.retainedEarnings, ta), C.div(r.ebit, ta), C.div(mve, r.totalLiabilities), C.div(r.revenue, ta)];
+  if (parts.some(x => x === null)) return null;
+  const z = 1.2 * parts[0] + 1.4 * parts[1] + 3.3 * parts[2] + 0.6 * parts[3] + 1.0 * parts[4];
+  return { z, zone: z > 2.99 ? 'Aman' : z >= 1.81 ? 'Abu-abu' : 'Rawan' };
+};
+
+C.graham = (eps, bvps) => (eps > 0 && bvps > 0) ? Math.sqrt(22.5 * eps * bvps) : null;
+
+// DCF: FCF tahun terakhir tumbuh g selama N tahun, diskon r, terminal gT
+C.dcf = ({ fcf, shares, netCash, g, r, gT, years }) => {
+  if (!(fcf > 0) || !(shares > 0) || !(r > gT)) return null;
+  let pv = 0, f = fcf;
+  for (let i = 1; i <= years; i++) { f = f * (1 + g); pv += f / Math.pow(1 + r, i); }
+  const tv = f * (1 + gT) / (r - gT), pvTv = tv / Math.pow(1 + r, years);
+  const equity = pv + pvTv + (netCash || 0);
+  return { pvFcf: pv, pvTv, equity, perShare: equity / shares };
+};
+
+// Jurnal: metode harga rata-rata (standar broker Indonesia)
+C.position = trades => {
+  let qty = 0, cost = 0, realized = 0, fees = 0, divs = 0;
+  const sorted = [...(trades || [])].sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.t || 0) - (b.t || 0));
+  for (const t of sorted) {
+    const sh = Math.round(C.num(t.lots) * 100), px = C.num(t.price), fee = C.num(t.fee) || 0;
+    if (t.type === 'div') { divs += C.num(t.amount) || 0; continue; }
+    if (!(sh > 0) || px === null) continue;
+    fees += fee;
+    if (t.type === 'buy') { cost += sh * px + fee; qty += sh; }
+    else if (t.type === 'sell') {
+      const s = Math.min(sh, qty); if (s <= 0) continue;
+      const avgCost = cost / qty;
+      realized += s * px - fee - s * avgCost;
+      cost -= s * avgCost; qty -= s;
+      if (qty === 0) cost = 0;
+    }
+  }
+  return { qty, lots: qty / 100, avg: qty ? cost / qty : 0, cost, realized, fees, divs };
+};
+// ===== Perencanaan =====
+// Rencana beli bertahap: sisa dana dibawa ke periode berikutnya
+C.dca = ({ amount, periods, price, fee }) => {
+  amount = C.num(amount); price = C.num(price); fee = C.num(fee) || 0; periods = Math.round(C.num(periods) || 0);
+  if (!(amount > 0) || !(price > 0) || !(periods > 0) || periods > 600) return null;
+  const unit = price * 100 * (1 + fee); let cash = 0, totLots = 0, totCost = 0; const rows = [];
+  for (let i = 1; i <= periods; i++) {
+    cash += amount; const lots = Math.floor(cash / unit + 1e-9); const cost = lots * unit; cash -= cost;
+    totLots += lots; totCost += cost; rows.push({ i, lots, cost, left: cash });
+  }
+  return { rows, totLots, totCost, left: cash, unit };
+};
+// Rebalancing ke target alokasi
+C.rebalance = ({ capital, items, fee }) => {
+  capital = C.num(capital); fee = C.num(fee) || 0; if (!(capital > 0)) return null;
+  const sum = items.reduce((a, x) => a + (C.num(x.pct) || 0), 0);
+  const rows = items.map(x => {
+    const pct = C.num(x.pct) || 0, price = C.num(x.price), cur = (price !== null ? x.qty * price : null);
+    const target = capital * pct; const diff = cur === null ? null : target - cur;
+    let buyLots = 0, sellLots = 0;
+    if (diff !== null && price > 0) { if (diff > 0) buyLots = Math.floor(diff / (price * 100 * (1 + fee)) + 1e-9); else sellLots = Math.min(Math.floor(-diff / (price * 100) + 1e-9), Math.floor(x.qty / 100)); }
+    return { ticker: x.ticker, pct, price, qty: x.qty, cur, curPct: cur === null ? null : cur / capital, target, diff, buyLots, sellLots, buyCost: price ? buyLots * price * 100 * (1 + fee) : 0 };
+  });
+  return { rows, sum, cash: capital * (1 - sum) };
+};
+C.alertState = (price, t) => {
+  price = C.num(price); if (price === null || !t) return [];
+  const out = [];
+  if (C.num(t.buy) !== null && price <= t.buy) out.push({ kind: 'beli', msg: 'Harga ≤ target beli' });
+  if (C.num(t.sell) !== null && price >= t.sell) out.push({ kind: 'jual', msg: 'Harga ≥ target jual' });
+  if (C.num(t.stop) !== null && price <= t.stop) out.push({ kind: 'stop', msg: 'Harga ≤ batas rugi (stop loss)' });
+  return out;
+};
+
+
+// ===== Pengawal AI: aturan ketat untuk data yang diekstrak AI =====
+const G = {};
+// 1) Uji identitas akuntansi & kewajaran (AI tidak boleh lolos jika melanggar)
+G.validate = (fin, jenis) => {
+  const out = [], n = C.num, bank = jenis === 'bank' || jenis === 'asuransi';
+  const add = (lvl, year, msg) => out.push({ lvl, year, msg });
+  fin.forEach((r, i) => {
+    const y = r.year;
+    ['revenue', 'totalAssets', 'sharesOutstanding'].forEach(k => { if (n(r[k]) !== null && n(r[k]) <= 0) add('kritis', y, `${G.label(k)} tidak boleh ≤ 0`); });
+    if (n(r.totalAssets) && n(r.totalLiabilities) !== null && n(r.equity) !== null) {
+      const gap = (r.totalAssets - r.totalLiabilities - r.equity) / r.totalAssets;
+      if (Math.abs(gap) > 0.15) add('kritis', y, `Aset ≠ liabilitas + ekuitas (selisih ${(gap * 100).toFixed(1)}% dari aset). Kemungkinan salah satuan/salah baca`);
+      else if (Math.abs(gap) > 0.005) add('cek', y, `Aset − liabilitas − ekuitas induk = ${(gap * 100).toFixed(2)}% dari aset. Wajar jika itu kepentingan nonpengendali; jika bukan, periksa`);
+    }
+    if (n(r.revenue) !== null && n(r.cogs) !== null && n(r.grossProfit) !== null && !bank) {
+      const d = Math.abs(r.revenue - r.cogs - r.grossProfit) / Math.abs(r.revenue);
+      if (d > 0.01) add('kritis', y, 'Pendapatan − beban pokok ≠ laba kotor');
+    }
+    const le = (a, b, msg) => { if (n(r[a]) !== null && n(r[b]) !== null && r[a] > r[b] * 1.0001) add('kritis', y, msg); };
+    if (!bank) { le('currentAssets', 'totalAssets', 'Aset lancar > total aset'); le('cash', 'currentAssets', 'Kas > aset lancar'); le('inventory', 'currentAssets', 'Persediaan > aset lancar'); le('receivables', 'currentAssets', 'Piutang > aset lancar'); le('currentLiabilities', 'totalLiabilities', 'Liabilitas jangka pendek > total liabilitas'); }
+    le('longTermDebt', 'totalDebt', 'Utang jangka panjang > total utang berbunga');
+    le('totalDebt', 'totalLiabilities', 'Utang berbunga > total liabilitas');
+    if (n(r.netIncome) !== null && n(r.revenue) && Math.abs(r.netIncome) > Math.abs(r.revenue) * 1.5) add('cek', y, 'Laba bersih jauh melebihi pendapatan — periksa satuan atau pos luar biasa');
+    if (i > 0) {
+      const p = fin[i - 1];
+      if (n(r.sharesOutstanding) && n(p.sharesOutstanding)) { const g = r.sharesOutstanding / p.sharesOutstanding; if (g > 1.5 || g < 0.67) add('cek', y, `Jumlah saham berubah ${g.toFixed(2)}× dari ${p.year} — stock split/right issue, atau salah baca`); }
+      ['revenue', 'totalAssets', 'equity'].forEach(k => { if (n(r[k]) && n(p[k])) { const g = Math.abs(r[k] / p[k]); if (g > 8 || g < 0.125) add('kritis', y, `${G.label(k)} berubah ${g.toFixed(1)}× dari ${p.year} — hampir pasti salah satuan (ribu/juta/miliar)`); } });
+      if (r.year - p.year !== 1) add('cek', y, `Tahun tidak berurutan (${p.year} → ${r.year})`);
+    }
+  });
+  return out;
+};
+G.labels = {};
+G.label = k => G.labels[k] || k;
+
+// 2) Setiap angka hasil AI harus ditemukan di teks dokumen (dalam satuan penuh/ribu/juta/miliar)
+G.docNumbers = text => {
+  const set = [];
+  (text.match(/\(?-?\d[\d.,]*\d\)?|\d/g) || []).forEach(tok => {
+    const t = tok.replace(/[()\-]/g, '');
+    const cands = new Set();
+    // format Indonesia: 1.234.567,89
+    if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(t)) cands.add(Number(t.replace(/\./g, '').replace(',', '.')));
+    // format Inggris: 1,234,567.89
+    if (/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(t)) cands.add(Number(t.replace(/,/g, '')));
+    if (/^\d+$/.test(t)) cands.add(Number(t));
+    if (/^\d+,\d+$/.test(t)) cands.add(Number(t.replace(',', '.')));
+    if (/^\d+\.\d+$/.test(t)) cands.add(Number(t));
+    cands.forEach(v => isFinite(v) && set.push(v));
+  });
+  return set;
+};
+G.foundInDoc = (v, nums) => {
+  if (v === null || v === undefined) return true;
+  const a = Math.abs(v); if (a === 0) return true;
+  for (const s of [1, 1e3, 1e6, 1e9, 1e12]) { const t = a / s; if (t < 1) continue;
+    for (const d of nums) if (d >= 10 && Math.abs(d - t) <= Math.max(0.5, t * 1e-9)) return true; }
+  return false;
+};
+G.unverified = (fin, text, keys) => {
+  if (!text || text.length < 50) return null;
+  const nums = G.docNumbers(text), out = [];
+  fin.forEach(r => keys.forEach(k => { if (C.num(r[k]) !== null && !G.foundInDoc(r[k], nums)) out.push({ year: r.year, k }); }));
+  return out;
+};
+
+// 3) Angka dalam narasi AI harus cocok dengan angka hasil hitungan aplikasi
+G.narrativeCheck = (text, allowed) => {
+  const bad = [], seen = new Set();
+  const re = /(-?\d{1,3}(?:[.,]\d+)*)\s?(%|×|x\b)/g; let m;
+  while ((m = re.exec(text))) {
+    const raw = m[1]; const v = Number(raw.replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.'));
+    if (!isFinite(v)) continue;
+    const isPct = m[2] === '%';
+    const ok = allowed.some(a => a !== null && isFinite(a) && (isPct ? Math.abs(a * 100 - v) <= 0.6 : Math.abs(a - v) <= 0.06));
+    // ambang teori yang wajar disebut (mis. ROE 15%, DER 1×) diizinkan
+    const thresholds = isPct ? [5, 10, 15, 20, 25, 30, 50, 100] : [1, 1.5, 2, 3];
+    if (!ok && !thresholds.includes(Math.abs(v)) && !seen.has(m[0])) { seen.add(m[0]); bad.push(m[0]); }
+  }
+  return bad;
+};
+
+
+</script>
+<script>
+(() => {
+const $ = s => document.querySelector(s), esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const FIELDS = [
+ ['revenue','Pendapatan'],['cogs','Beban pokok pendapatan'],['grossProfit','Laba kotor'],['operatingProfit','Laba usaha'],['ebit','EBIT'],['interestExpense','Beban bunga'],['depreciation','Penyusutan & amortisasi'],['netIncome','Laba bersih (ke pemilik entitas induk)'],
+ ['cash','Kas & setara kas'],['receivables','Piutang usaha'],['inventory','Persediaan'],['currentAssets','Aset lancar'],['totalAssets','Total aset'],['currentLiabilities','Liabilitas jangka pendek'],['longTermDebt','Utang jangka panjang berbunga'],['totalDebt','Total utang berbunga'],['totalLiabilities','Total liabilitas'],['retainedEarnings','Saldo laba'],['equity','Ekuitas (ke pemilik entitas induk)'],
+ ['cfo','Arus kas operasi'],['capex','Belanja modal (capex)'],['dividendsPaid','Dividen dibayar'],['sharesOutstanding','Jumlah saham beredar (lembar)']];
+const LS = 'bedahEmiten.v1';
+let state = { stocks: {}, trades: [], prices: {}, plan: { feeBuy: 0.0015, feeSell: 0.0025, capital: null, alloc: {}, targets: {}, dca: [] }, settings: { provider: 'gemini', keys: {}, models: {}, baseUrl: 'https://openrouter.ai/api/v1', apiKey: '', model: '', price: { mode: 'offline', url: '', path: '', hName: '', hVal: '' } } };
+let db = null, uid = null, sample = null, cur = null, images = [], ctl = null, sub = 'ringkas';
+
+// ---------- format ----------
+const nf = (v, d = 2) => v === null || v === undefined || !isFinite(v) ? '–' : Number(v).toLocaleString('id-ID', { minimumFractionDigits: d, maximumFractionDigits: d });
+const pct = v => v === null || v === undefined || !isFinite(v) ? '–' : nf(v * 100, 2) + '%';
+const x = v => v === null || v === undefined || !isFinite(v) ? '–' : nf(v, 2) + '×';
+const rp = (v, d = 0) => v === null || v === undefined || !isFinite(v) ? '–' : 'Rp' + nf(v, d);
+const big = v => { if (v === null || v === undefined || !isFinite(v)) return '–'; const a = Math.abs(v), s = v < 0 ? '−' : '';
+ if (a >= 1e12) return s + nf(a / 1e12, 2) + ' T'; if (a >= 1e9) return s + nf(a / 1e9, 2) + ' M'; if (a >= 1e6) return s + nf(a / 1e6, 2) + ' jt'; return s + nf(a, 0); };
+const parseNum = s => { if (s === null || s === undefined) return null; s = String(s).trim(); if (!s) return null;
+ s = s.replace(/[Rp\s]/gi, ''); const neg = /^\(.*\)$/.test(s) || s.startsWith('-') || s.startsWith('−'); s = s.replace(/[()\-−]/g, '');
+ if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) s = s.replace(/\./g, '').replace(',', '.'); else if (/^\d+(,\d+)$/.test(s)) s = s.replace(',', '.'); else s = s.replace(/,/g, '');
+ const n = Number(s); return isFinite(n) ? (neg ? -n : n) : null; };
+const cls = v => v > 0 ? 'up' : v < 0 ? 'down' : '';
+
+// ---------- storage ----------
+function lsLoad() { try { const s = localStorage.getItem(LS); if (s) { const d = JSON.parse(s); state = Object.assign(state, d, { settings: Object.assign(state.settings, d.settings || {}, { price: Object.assign(state.settings.price, (d.settings || {}).price || {}) }) }); } } catch (e) {} }
+const IDB = { db: null,
+ open() { return new Promise((res, rej) => { if (!window.indexedDB) return rej(new Error('no idb')); const r = indexedDB.open('bedah-emiten', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => { IDB.db = r.result; res(); }; r.onerror = () => rej(r.error); }); },
+ get(k) { return new Promise((res, rej) => { const t = IDB.db.transaction('kv').objectStore('kv').get(k); t.onsuccess = () => res(t.result); t.onerror = () => rej(t.error); }); },
+ put(k, v) { return new Promise((res, rej) => { const tx = IDB.db.transaction('kv', 'readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = () => res(); tx.onerror = tx.onabort = () => rej(tx.error); }); } };
+let idbT = null, saveFailShown = false;
+function lsSave() { clearTimeout(idbT); idbT = setTimeout(writeStore, 300); }
+async function writeStore() {
+ const data = JSON.stringify(state);
+ try { if (IDB.db) await IDB.put('state', data); else localStorage.setItem(LS, data); saveFailShown = false; }
+ catch (e) { if (!saveFailShown) { saveFailShown = true; alert('Penyimpanan gagal (memori perangkat penuh?). Segera unduh cadangan data di tab Emiten tersimpan, lalu hapus emiten yang tidak dipakai.'); } return; }
+ checkQuota();
+}
+async function checkQuota() {
+ try { const e = await navigator.storage.estimate(); const pct = e.usage / e.quota; const note = $('#storeNote');
+  note.textContent = 'Terpakai ' + big(e.usage).replace(' jt', ' juta') + ' byte dari kapasitas ' + big(e.quota).replace(' jt', ' juta') + ' byte (' + nf(pct * 100, 1) + '%). ' + (IDB.db ? 'Disimpan di basis data perangkat.' : 'Disimpan di memori peramban.');
+  if (pct > 0.8) note.innerHTML = '<span class="down">Penyimpanan hampir penuh (' + nf(pct * 100, 1) + '%). Unduh cadangan dan hapus emiten yang tidak dipakai.</span>';
+ } catch (e) {} }
+function mergeState(d) {
+ const st = state.settings, ds = d.settings || {};
+ state = Object.assign(state, d, { settings: Object.assign(st, ds, { price: Object.assign(st.price, ds.price || {}), keys: Object.assign({}, st.keys, ds.keys || {}), models: Object.assign({}, st.models, ds.models || {}) }), plan: Object.assign({ feeBuy: 0.0015, feeSell: 0.0025, capital: null, alloc: {}, targets: {}, dca: [] }, d.plan || {}) });
+ const s2 = state.settings; if (s2.apiKey && !s2.keys.anthropic) { s2.keys.anthropic = s2.apiKey; s2.models.anthropic = s2.model || 'claude-sonnet-5'; if (!ds.provider) s2.provider = 'anthropic'; }
+}
+async function loadStore() {
+ let raw = null;
+ try { await IDB.open(); raw = await IDB.get('state'); try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {} } catch (e) { IDB.db = null; }
+ if (!raw) { try { raw = localStorage.getItem(LS); } catch (e) {} if (raw && IDB.db) { try { await IDB.put('state', raw); } catch (e) {} } }
+ if (raw) { try { mergeState(JSON.parse(raw)); } catch (e) {} }
+}
+let saveT = null;
+function save() { lsSave(); try { renderAlerts(); } catch (e) {} clearTimeout(saveT); saveT = setTimeout(cloudSave, 800); }
+async function cloudSave() { dirty.clear(); return;
+ if (!db || !uid) return;
+ try {
+  const base = 'data/users/' + uid;
+  await db.doc(base + '/jurnal/transaksi').set({ trades: state.trades, prices: state.prices });
+  for (const k of dirty) { const s = state.stocks[k]; if (s) await db.doc(base + '/saham/' + k).set(s); else await db.doc(base + '/saham/' + k).delete(); }
+  dirty.clear(); $('#storeNote').textContent = 'Tersimpan di akun Claude Anda (bisa dibuka dari perangkat lain).';
+ } catch (e) { $('#storeNote').textContent = 'Penyimpanan awan gagal (' + (e.code || 'error') + '); data tetap tersimpan di peramban ini.'; }
+}
+const dirty = new Set();
+async function initCloud() {
+ try {
+  const user = await claude.use('user'); db = await claude.use('db');
+  if (user) uid = await user.id();
+  if (!db || !uid) { $('#storeNote').textContent = 'Data tersimpan di peramban ini. Gunakan unduh cadangan secara berkala.'; return; }
+  const base = 'data/users/' + uid;
+  const j = await db.doc(base + '/jurnal/transaksi').get();
+  if (j.exists) { const d = j.data(); state.trades = d.trades || state.trades; state.prices = d.prices || state.prices; }
+  const qs = await db.collection(base + '/saham').get();
+  qs.docs.forEach(d => { const v = d.data(); if (v && v.ticker) state.stocks[v.ticker] = v; });
+  // unggah data lokal yang belum ada di awan
+  Object.keys(state.stocks).forEach(k => { if (!qs.docs.find(d => d.id === k)) dirty.add(k); });
+  lsSave(); $('#storeNote').textContent = 'Tersimpan di akun Claude Anda (bisa dibuka dari perangkat lain).';
+  renderAll(); if (dirty.size) cloudSave();
+ } catch (e) { $('#storeNote').textContent = 'Data tersimpan di peramban ini.'; }
+}
+
+// ---------- navigasi ----------
+$('#nav').onclick = e => { const b = e.target.closest('button'); if (!b) return; show(b.dataset.v); };
+function show(v) { document.querySelectorAll('#nav button').forEach(b => b.setAttribute('aria-current', b.dataset.v === v)); ['bedah', 'porto', 'daftar', 'rencana', 'atur'].forEach(k => $('#v-' + k).classList.toggle('hidden', k !== v)); if (v === 'porto') renderPorto(); if (v === 'daftar') renderList(); if (v === 'atur') renderSettings(); if (v === 'rencana') renderPlan(); window.scrollTo(0, 0); }
+
+// ---------- gambar ----------
+$('#drop').onclick = () => $('#imgs').click(); $('#drop').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') $('#imgs').click(); };
+$('#imgs').onchange = async e => {
+ const max = 10;
+ images = [...e.target.files]; if (max && images.length > max) { $('#imgnote').textContent = 'Maksimal ' + max + ' gambar per analisis; ' + (images.length - max) + ' gambar tidak dipakai.'; images = images.slice(0, max); } else $('#imgnote').textContent = images.length ? images.length + ' gambar dipilih.' : '';
+ $('#thumbs').innerHTML = ''; images.forEach(f => { if (f.type === 'application/pdf') { const c = document.createElement('span'); c.className = 'chip'; c.textContent = f.name; $('#thumbs').append(c); } else { const i = document.createElement('img'); i.src = URL.createObjectURL(f); i.alt = f.name; $('#thumbs').append(i); } });
+};
+
+// ---------- AI ----------
+const errCopy = e => ({ not_granted: 'Izin AI ditolak. Anda masih bisa mengisi data manual.', rate_limited: 'Kuota AI habis atau terlalu cepat. Tunggu beberapa menit (kuota gratis pulih berkala) lalu coba lagi.', pdf_unsupported: 'Penyedia ini tidak bisa membaca PDF. Tempel teks laporannya, atau pakai Gemini.', invalid_json: 'Jawaban AI tidak terbaca. Coba lagi atau kurangi dokumen.', prompt_too_large: 'Dokumen terlalu panjang. Tempel bagian laporan keuangan utama saja.', overloaded: 'Server AI sedang sibuk. Coba beberapa saat lagi.', no_key: 'Kunci API belum diisi. Buka tab Pengaturan.', bad_key: 'Kunci API ditolak. Periksa di tab Pengaturan.', network: 'Tidak ada koneksi internet atau permintaan diblokir.', http: 'Server AI menolak permintaan.', image_rejected: 'Salah satu gambar tidak bisa dibaca.', cancelled: 'Dihentikan.' }[e?.code] || ('Gagal: ' + (e?.message || 'kesalahan tidak diketahui')));
+
+function extractPrompt(tk, text, hasImg) {
+ const keys = FIELDS.map(f => f[0] + ' (' + f[1] + ')').join(', ');
+ return `${RULES}
+Tugas: EKSTRAKSI data emiten dengan kode "${tk}".
+${text || hasImg ? 'SUMBER UTAMA: dokumen yang diberikan pengguna (teks di bawah' + (hasImg ? ' dan gambar terlampir' : '') + '). Ambil angka PERSIS dari dokumen. Jika dokumen tidak memuat suatu angka, isi dari pengetahuan Anda hanya jika yakin dan catat di "catatanSumber"; jika tidak yakin isi null.' : 'Tidak ada dokumen. Gunakan pengetahuan Anda tentang laporan keuangan tahunan (audited) emiten ini. Jika tidak yakin suatu angka, isi null. JANGAN mengarang.'}
+Aturan angka: semua nilai uang dalam RUPIAH PENUH (bukan juta/miliar; kalikan sesuai satuan dokumen, cek keterangan "dalam jutaan Rupiah"). Jika laporan dalam USD, konversi TIDAK dilakukan: isi "mataUang":"USD". Beban/pengeluaran (capex, dividen dibayar, beban bunga, penyusutan) tulis sebagai angka POSITIF. sharesOutstanding = jumlah lembar saham beredar. Urutkan tahun dari lama ke baru, maksimal 5 tahun terakhir. Untuk bank/asuransi, isi yang relevan saja, sisanya null.
+Balas HANYA JSON:
+{"ticker":"${tk}","nama":"","sektor":"","subsektor":"","jenisUsaha":"non-keuangan|bank|asuransi|lainnya","mataUang":"IDR","tahunBuku":"Desember","ipo":{"tanggal":"","hargaIPO":null,"penggunaanDana":""},"profil":"ringkasan bisnis 3-5 kalimat","modelBisnis":["..."],"segmen":[{"nama":"","kontribusiPersen":null}],"pemegangSaham":[{"nama":"","persen":null}],"manajemen":[{"nama":"","jabatan":""}],"anakUsaha":["..."],"katalis":["..."],"risiko":["..."],"keunggulanKompetitif":["..."],"tataKelola":["catatan GCG, transaksi pihak berelasi, opini auditor, dsb"],"catatanSumber":"sebutkan tahun & sumber angka, dan angka mana yang dari pengetahuan AI","financials":[{"year":2024, ...kunci: ${keys}}]}
+${text ? '\n=== DOKUMEN PENGGUNA ===\n' + text.slice(0, 45000) : ''}`;
+}
+
+function narrativePrompt(s, R) {
+ const last = R.rows[R.rows.length - 1] || {};
+ const brief = { ticker: s.ticker, nama: s.nama, sektor: s.sektor, jenis: s.jenisUsaha, harga: s.price, profil: s.profil, segmen: s.segmen, pemegangSaham: s.pemegangSaham, katalis: s.katalis, risiko: s.risiko, keunggulan: s.keunggulanKompetitif, tataKelola: s.tataKelola,
+  rasioPerTahun: R.rows.map(r => ({ tahun: r.year, GPM: r.gpm, NPM: r.npm, ROE: r.roe, ROA: r.roa, CR: r.currentRatio, DER: r.der, PER: r.per, PBV: r.pbv, EPS: r.eps, BVPS: r.bvps, DY: r.divYield, pertumbuhanPendapatan: r.revGrowth, pertumbuhanLaba: r.niGrowth, FCF: r.fcf, CFOkeLaba: r.cfoToNi })),
+  piotroski: R.pio ? R.pio.score + '/' + R.pio.known : null, altmanZ: R.alt ? R.alt.z : null, grahamNumber: R.graham, nilaiDCFperSaham: R.dcf ? R.dcf.perShare : null, CAGRpendapatan: R.cagrRev, CAGRlaba: R.cagrNi };
+ return `${RULES}
+Semua rasio di bawah SUDAH DIHITUNG oleh aplikasi dengan rumus pasti; JANGAN menghitung ulang atau mengubah angkanya, cukup tafsirkan (desimal 0.15 = 15%). Tulis laporan bedah emiten dalam Bahasa Indonesia, lugas, jujur, tanpa hype. Format Markdown sederhana dengan judul "#### " dan poin "- ". Bagian wajib:
+#### Kesimpulan singkat (3 kalimat, sebut kekuatan & kelemahan utama)
+#### Kualitas bisnis & keunggulan kompetitif
+#### Kesehatan keuangan (profitabilitas, likuiditas, solvabilitas, arus kas, kualitas laba)
+#### Tren pertumbuhan
+#### Valuasi (murah/wajar/mahal relatif terhadap kualitas; sebut asumsi)
+#### Tanda bahaya (red flags) yang perlu dicek di laporan keuangan
+#### Katalis & risiko ke depan
+#### Pertanyaan yang harus dijawab investor sebelum membeli
+${s.jenisUsaha === 'bank' ? 'Catatan: ini bank — rasio seperti current ratio, DER, Altman Z tidak relevan; fokus pada ROE, PBV, pertumbuhan kredit/laba, kualitas aset (NPL, CAR, NIM jika Anda tahu, sebut sebagai perkiraan).' : ''}
+Akhiri dengan satu baris: "Ini analisis edukatif, bukan rekomendasi beli/jual."
+DATA:
+${JSON.stringify(brief)}`;
+}
+
+$('#goBtn').onclick = async () => {
+ const tk = $('#tk').value.trim().toUpperCase(); if (!/^[A-Z]{2,6}$/.test(tk)) { $('#goStatus').textContent = 'Isi kode saham 4 huruf, mis. BBCA.'; $('#tk').focus(); return; }
+ const price = parseNum($('#px').value), text = $('#doctext').value.trim();
+ if (!sample) { // manual mode
+  const s = state.stocks[tk] || blankStock(tk); if (price !== null) s.price = price; state.stocks[tk] = s; dirty.add(tk); save(); openStock(tk); return; }
+ ctl = new AbortController(); const btn = $('#goBtn'); btn.disabled = true; $('#stopBtn').classList.remove('hidden');
+ try {
+  $('#goStatus').textContent = 'Langkah 1/2: membaca dokumen & mengekstrak data keuangan… (bisa 30–120 detik)';
+  const opt = { signal: ctl.signal }; if (images.length) opt.images = images;
+  const d = await sample.json(extractPrompt(tk, text, images.length > 0), opt);
+  if (!d || typeof d !== 'object') throw { code: 'invalid_json' };
+  const s = Object.assign(blankStock(tk), d, { ticker: tk, updated: new Date().toISOString(), source: (text || images.length) ? 'dokumen pengguna' : 'pengetahuan AI' });
+  s.financials = C.sortYears((d.financials || []).map(r => { const o = { year: parseInt(r.year) }; FIELDS.forEach(([k]) => o[k] = C.num(r[k])); return o; }));
+  if (price !== null) s.price = price; else if (state.stocks[tk]?.price) s.price = state.stocks[tk].price;
+  s.notes = state.stocks[tk]?.notes || ''; s.chat = [];
+  s.docText = text.slice(0, 60000); s.verified = false;
+  audit(s); state.stocks[tk] = s; dirty.add(tk); save(); openStock(tk);
+  if (s.issues.some(i => i.lvl === 'kritis')) { $('#goStatus').textContent = 'Berhenti: pengawal menemukan data yang melanggar aturan akuntansi. Periksa tab Ringkasan, koreksi di tab Laporan keuangan, lalu tekan "Data sudah saya periksa".'; return; }
+  $('#goStatus').textContent = 'Langkah 2/2: menyusun analisis dari rasio yang sudah dihitung…';
+  await runNarrative(tk, ctl.signal);
+  $('#goStatus').textContent = 'Selesai. ' + (s.issues.length || (s.unverified || []).length ? 'Ada catatan dari pengawal; lihat tab Ringkasan.' : 'Semua uji pengawal lulus.') + ' Tetap cocokkan dengan laporan resmi.';
+ } catch (e) { $('#goStatus').textContent = errCopy(e); if (e?.code === 'not_granted') { sample = null; $('#noAi').classList.remove('hidden'); } }
+ finally { btn.disabled = false; $('#stopBtn').classList.add('hidden'); }
+};
+$('#stopBtn').onclick = () => ctl?.abort();
+
+function audit(s) {
+ const fin = C.sortYears(s.financials); s.issues = G.validate(fin, s.jenisUsaha);
+ const u = G.unverified(fin, s.docText, FIELDS.map(f => f[0])); s.unverified = u || [];
+}
+function allowedNums(R) { const a = []; R.rows.forEach(r => Object.values(r).forEach(v => typeof v === 'number' && a.push(v))); [R.cagrRev, R.cagrNi, R.mos, R.alt?.z, R.pio?.score, R.quality, R.avgRoe, R.dc?.g, R.dc?.r, R.dc?.gT].forEach(v => v != null && a.push(v)); if (R.quality != null) a.push(R.quality / 100); return a; }
+async function runNarrative(tk, signal) {
+ const s = state.stocks[tk], R = compute(s); const box = document.getElementById('narrBox');
+ if (box) box.innerHTML = '<p class="mute">Menyusun analisis…</p>';
+ const { text } = await sample(narrativePrompt(s, R), { signal, onText: ({ text }) => { const b = document.getElementById('narrBox'); if (b) b.innerHTML = md(text); } });
+ s.narrative = text; s.narrativeAt = new Date().toISOString(); s.narrBad = G.narrativeCheck(text, allowedNums(R)); dirty.add(tk); save(); if (cur === tk) renderStock();
+}
+
+const md = t => esc(t).split('\n').map(l => l.startsWith('#### ') ? '<h4>' + l.slice(5) + '</h4>' : l.match(/^\s*[-•] /) ? '<li>' + l.replace(/^\s*[-•] /, '') + '</li>' : l.trim() ? '<p>' + l + '</p>' : '').join('').replace(/(<li>.*?<\/li>)+/g, m => '<ul>' + m + '</ul>').replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+
+function blankStock(tk) { return { ticker: tk, nama: '', sektor: '', jenisUsaha: 'non-keuangan', mataUang: 'IDR', financials: [], price: null, dcf: { g: 0.08, r: 0.12, gT: 0.04, years: 5 }, notes: '', chat: [], updated: new Date().toISOString() }; }
+
+// ---------- perhitungan ----------
+function compute(s) {
+ const fin = C.sortYears(s.financials), price = C.num(s.price);
+ const rows = fin.map((_, i) => C.ratios(fin, i, i === fin.length - 1 ? price : null));
+ const last = rows[rows.length - 1] || {}, lf = fin[fin.length - 1] || {};
+ const pio = C.piotroski(fin), alt = (s.jenisUsaha === 'non-keuangan' && fin.length) ? C.altman(lf, price) : null;
+ const graham = C.graham(last.eps, last.bvps);
+ const dc = Object.assign({ g: 0.08, r: 0.12, gT: 0.04, years: 5 }, s.dcf || {});
+ const netCash = (C.num(lf.cash) !== null && C.num(lf.totalDebt) !== null) ? lf.cash - lf.totalDebt : 0;
+ const dcf = s.jenisUsaha === 'bank' ? null : C.dcf({ fcf: last.fcf, shares: C.num(lf.sharesOutstanding), netCash, g: dc.g, r: dc.r, gT: dc.gT, years: dc.years });
+ const n = fin.length;
+ const cagrRev = n >= 2 ? C.cagr(fin[n - 1].revenue, fin[0].revenue, fin[n - 1].year - fin[0].year) : null;
+ const cagrNi = n >= 2 ? C.cagr(fin[n - 1].netIncome, fin[0].netIncome, fin[n - 1].year - fin[0].year) : null;
+ const avgRoe = rows.length ? (v => v.length ? v.reduce((a, b) => a + b, 0) / v.length : null)(rows.map(r => r.roe).filter(v => v !== null)) : null;
+ const iv = [graham, dcf?.perShare].filter(v => v > 0); const fair = iv.length ? iv.reduce((a, b) => a + b, 0) / iv.length : null;
+ const mos = (fair && price) ? (fair - price) / fair : null;
+ // skor kualitas 0-100 (transparan)
+ const pts = []; const add = (name, ok, w) => pts.push({ name, ok, w });
+ if (last.roe !== null && last.roe !== undefined) add('ROE ≥ 15%', last.roe >= 0.15, 15);
+ if (last.npm !== null && last.npm !== undefined) add('Margin laba bersih ≥ 10%', last.npm >= 0.10, 10);
+ if (s.jenisUsaha !== 'bank' && last.der !== null && last.der !== undefined) add('DER ≤ 1×', last.der <= 1, 15);
+ if (s.jenisUsaha !== 'bank' && last.currentRatio !== null && last.currentRatio !== undefined) add('Current ratio ≥ 1,5×', last.currentRatio >= 1.5, 10);
+ if (last.cfoToNi !== null && last.cfoToNi !== undefined) add('Arus kas operasi ≥ laba bersih', last.cfoToNi >= 1, 15);
+ if (cagrRev !== null) add('Pendapatan tumbuh (CAGR > 5%)', cagrRev > 0.05, 10);
+ if (cagrNi !== null) add('Laba tumbuh (CAGR > 5%)', cagrNi > 0.05, 10);
+ if (pio) add('Piotroski ≥ 6', pio.score >= 6, 15);
+ const wT = pts.reduce((a, p) => a + p.w, 0), wOk = pts.filter(p => p.ok).reduce((a, p) => a + p.w, 0);
+ return { fin, rows, last, lf, pio, alt, graham, dcf, dc, netCash, cagrRev, cagrNi, avgRoe, fair, mos, pts, quality: wT ? Math.round(wOk / wT * 100) : null };
+}
+
+// ---------- tampilan emiten ----------
+function openStock(tk) { cur = tk; const s = state.stocks[tk]; $('#tk').value = tk; if (s.price) $('#px').value = nf(s.price, 0); show('bedah'); sub = 'ringkas'; renderStock(); $('#result').scrollIntoView({ block: 'start' }); }
+function renderStock() {
+ const s = state.stocks[cur]; if (!s) return; const R = compute(s), L = R.last, res = $('#result'); res.classList.remove('hidden');
+ const tabs = [['ringkas', 'Ringkasan'], ['keu', 'Laporan keuangan'], ['rasio', 'Rasio'], ['valuasi', 'Valuasi'], ['profil', 'Profil & prospektus'], ['ai', 'Analisis AI'], ['tanya', 'Tanya AI'], ['catatan', 'Catatan saya']];
+ let h = `<div class="panel"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h1>${esc(s.ticker)} <span class="mute" style="font-weight:500;font-size:.55em">${esc(s.nama || '')}</span></h1>
+ <p class="mute small">${esc([s.sektor, s.subsektor].filter(Boolean).join(' / '))}${s.source ? ' — sumber: ' + esc(s.source) : ''} — diperbarui ${new Date(s.updated).toLocaleString('id-ID')}</p></div>
+ <div class="row"><button class="btn ghost sm" id="expBtn">Unduh laporan</button><button class="btn danger sm" id="delBtn">Hapus</button></div></div>
+ ${s.mataUang && s.mataUang !== 'IDR' ? '<div class="status">Laporan dalam ' + esc(s.mataUang) + '. Harga saham dalam Rupiah, jadi PER/PBV/DY tidak sebanding sampai angka dikonversi.</div>' : ''}
+ ${s.source === 'pengetahuan AI' ? '<div class="status">Angka berasal dari pengetahuan AI, bukan dokumen. Bisa usang atau keliru; cocokkan dengan laporan keuangan resmi di idx.co.id sebelum mengambil keputusan.</div>' : ''}
+ <div class="tabs2" role="tablist">${tabs.map(([k, l]) => `<button data-s="${k}" aria-current="${sub === k}">${l}</button>`).join('')}</div><div id="subBody">`;
+ if (sub === 'ringkas') {
+  const iss = s.issues || [], unv = s.unverified || [];
+  if (iss.length || unv.length || (s.narrBad || []).length) {
+   h += '<h2>Temuan pengawal</h2>' + iss.map(i => `<div class="issue ${i.lvl}"><b>${i.lvl === 'kritis' ? 'Kritis' : 'Periksa'} (${i.year}):</b> ${esc(i.msg)}</div>`).join('');
+   if (unv.length) h += `<div class="issue"><b>Tidak ditemukan di teks dokumen (${unv.length} angka):</b> ${esc(unv.slice(0, 12).map(u => G.label(u.k) + ' ' + u.year).join(', '))}${unv.length > 12 ? ', …' : ''}. Bisa hasil penjumlahan AI atau dari pengetahuannya — cocokkan manual.</div>`;
+   if ((s.narrBad || []).length) h += `<div class="issue"><b>Angka di analisis AI yang tidak cocok dengan hitungan aplikasi:</b> ${esc(s.narrBad.join(', '))}. Pegang angka di tab Rasio.</div>`;
+  }
+  if (!s.narrative && sample && s.financials.length) h += '<button class="btn" id="confirmData" style="margin:8px 0 18px">' + (iss.some(i => i.lvl === 'kritis') ? 'Data sudah saya periksa, lanjutkan analisis' : 'Susun analisis AI') + '</button>';
+  h += `<div class="verdict"><div class="score" style="border-color:${R.quality >= 70 ? 'var(--up)' : R.quality >= 45 ? 'var(--warn)' : 'var(--down)'}">${R.quality ?? '–'}</div>
+  <div><h2 style="margin-bottom:4px">Skor kualitas fundamental</h2><p class="mute small">Dari ${R.pts.length} uji berbobot pada tahun terakhir. Rincian:</p>
+  ${R.pts.map(p => `<div class="test"><span class="${p.ok ? 'up' : 'down'}">${p.ok ? '✓' : '✗'}</span>${esc(p.name)} <span class="mute">(${p.w})</span></div>`).join('') || '<p class="mute">Isi laporan keuangan untuk menghitung skor.</p>'}</div></div>
+  <h3>Angka kunci ${L.year ? 'tahun ' + L.year : ''}</h3><div class="metric-grid">
+  ${[['Harga', rp(s.price)], ['Kapitalisasi pasar', big(L.mcap)], ['PER', x(L.per)], ['PBV', x(L.pbv)], ['EPS', rp(L.eps, 2)], ['BVPS', rp(L.bvps, 2)], ['ROE', pct(L.roe)], ['NPM', pct(L.npm)], ['DER', x(L.der)], ['Dividend yield', pct(L.divYield)], ['CAGR pendapatan', pct(R.cagrRev)], ['CAGR laba', pct(R.cagrNi)], ['Nilai wajar (rata-rata Graham & DCF)', rp(R.fair)], ['Margin of safety', `<span class="${cls(R.mos)}">${pct(R.mos)}</span>`], ['Piotroski F-Score', R.pio ? R.pio.score + ' / ' + R.pio.known : '–'], ['Altman Z', R.alt ? nf(R.alt.z) + ' (' + R.alt.zone + ')' : '–']].map(([a, b]) => `<div class="metric"><span>${a}</span><b>${b}</b></div>`).join('')}</div>
+  ${s.narrative ? '<h3>Kesimpulan AI</h3><div class="narr">' + md((s.narrative.split('####')[1] || '').replace(/^[^\n]*\n/, '')) + '</div><button class="btn ghost sm" data-s="ai">Baca analisis lengkap</button>' : ''}`;
+ } else if (sub === 'keu') {
+  const yrs = R.fin.map(f => f.year);
+  h += `<p class="mute small">Semua angka dalam Rupiah penuh. Ketik angka dengan format bebas (1.250.000 atau 1250000). Setiap perubahan langsung menghitung ulang semua rasio.</p>
+  <div class="row" style="margin-bottom:10px"><button class="btn ghost sm" id="addYear">Tambah tahun</button>${yrs.length ? '<button class="btn danger sm" id="delYear">Hapus tahun terlama</button>' : ''}</div>
+  <div class="scroll"><table><thead><tr><th>Pos</th>${yrs.map(y => `<th><input data-year-edit="${y}" value="${y}" style="width:70px"></th>`).join('')}</tr></thead><tbody>
+  ${FIELDS.map(([k, l]) => `<tr><td>${l}</td>${R.fin.map((f, i) => `<td><input data-fin="${i}" data-k="${k}" value="${f[k] === null || f[k] === undefined ? '' : nf(f[k], k === 'sharesOutstanding' ? 0 : 0)}" inputmode="decimal"></td>`).join('')}</tr>`).join('')}</tbody></table></div>
+  ${s.catatanSumber ? '<p class="small mute" style="margin-top:10px">Catatan sumber: ' + esc(s.catatanSumber) + '</p>' : ''}`;
+ } else if (sub === 'rasio') {
+  const lines = [['Profitabilitas'], ['Margin laba kotor', 'gpm', pct], ['Margin laba usaha', 'opm', pct], ['Margin laba bersih', 'npm', pct], ['ROE (ekuitas rata-rata)', 'roe', pct], ['ROA (aset rata-rata)', 'roa', pct],
+   ['Likuiditas'], ['Current ratio', 'currentRatio', x], ['Quick ratio', 'quickRatio', x], ['Cash ratio', 'cashRatio', x],
+   ['Solvabilitas'], ['Liabilitas / ekuitas (DER)', 'der', x], ['Utang berbunga / ekuitas', 'debtToEquity', x], ['Liabilitas / aset', 'dar', x], ['Interest coverage (EBIT/bunga)', 'interestCoverage', x],
+   ['Efisiensi & arus kas'], ['Perputaran aset', 'assetTurnover', x], ['Free cash flow', 'fcf', big], ['Margin FCF', 'fcfMargin', pct], ['Arus kas operasi / laba', 'cfoToNi', x],
+   ['Per saham'], ['EPS', 'eps', v => rp(v, 2)], ['BVPS', 'bvps', v => rp(v, 2)], ['DPS', 'dps', v => rp(v, 2)], ['Payout ratio', 'payout', pct],
+   ['Pertumbuhan'], ['Pendapatan YoY', 'revGrowth', pct], ['Laba bersih YoY', 'niGrowth', pct], ['Ekuitas YoY', 'eqGrowth', pct]];
+  h += `<div class="scroll"><table><thead><tr><th>Rasio</th>${R.rows.map(r => '<th>' + r.year + '</th>').join('')}</tr></thead><tbody>
+  ${lines.map(l => l.length === 1 ? `<tr><td colspan="${R.rows.length + 1}" style="font-weight:700;padding-top:14px">${l[0]}</td></tr>` : `<tr><td>${l[0]}</td>${R.rows.map(r => `<td class="${/Growth/.test(l[1]) ? cls(r[l[1]]) : ''}">${l[2](r[l[1]])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+  ${R.pio ? `<h3>Piotroski F-Score: ${R.pio.score} dari ${R.pio.known} uji yang datanya lengkap</h3>${R.pio.tests.map(t => `<div class="test"><span class="${t.pass === null ? 'mute' : t.pass ? 'up' : 'down'}">${t.pass === null ? '?' : t.pass ? '✓' : '✗'}</span>${t.name}</div>`).join('')}` : ''}
+  ${R.alt ? `<h3>Altman Z-Score: ${nf(R.alt.z)} — zona ${R.alt.zone}</h3><p class="small mute">Model asli (manufaktur/non-keuangan). &gt; 2,99 aman, 1,81–2,99 abu-abu, &lt; 1,81 rawan kesulitan keuangan.</p>` : ''}`;
+ } else if (sub === 'valuasi') {
+  const dc = R.dc;
+  h += `<div class="grid g2"><div><h3>Harga wajar Graham</h3><p>√(22,5 × EPS × BVPS) = <b>${rp(R.graham)}</b></p><p class="small mute">Cocok untuk emiten laba stabil. Kosong bila EPS atau BVPS negatif.</p></div>
+  <div><h3>Discounted cash flow (FCF)</h3>${s.jenisUsaha === 'bank' ? '<p class="mute">DCF berbasis FCF tidak berlaku untuk bank.</p>' : `
+  <div class="grid" style="grid-template-columns:1fr 1fr">
+   <div><label>Pertumbuhan FCF / thn (%)</label><input data-dcf="g" value="${nf(dc.g * 100, 2)}"></div><div><label>Tingkat diskonto (%)</label><input data-dcf="r" value="${nf(dc.r * 100, 2)}"></div>
+   <div><label>Pertumbuhan terminal (%)</label><input data-dcf="gT" value="${nf(dc.gT * 100, 2)}"></div><div><label>Lama proyeksi (thn)</label><input data-dcf="years" value="${dc.years}"></div></div>
+  <table style="margin-top:10px"><tbody><tr><td>FCF tahun terakhir</td><td>${big(R.last.fcf)}</td></tr><tr><td>PV arus kas proyeksi</td><td>${big(R.dcf?.pvFcf)}</td></tr><tr><td>PV nilai terminal</td><td>${big(R.dcf?.pvTv)}</td></tr><tr><td>+ Kas bersih (kas − utang berbunga)</td><td>${big(R.netCash)}</td></tr><tr><td><b>Nilai per saham</b></td><td><b>${rp(R.dcf?.perShare)}</b></td></tr></tbody></table>
+  ${R.last.fcf !== null && R.last.fcf <= 0 ? '<p class="small warn">FCF tahun terakhir negatif/nol, DCF tidak bisa dihitung.</p>' : ''}`}</div></div>
+  <h3>Posisi harga</h3><div class="metric-grid">${[['Harga sekarang', rp(s.price)], ['Nilai wajar rata-rata', rp(R.fair)], ['Margin of safety', `<span class="${cls(R.mos)}">${pct(R.mos)}</span>`], ['Earnings yield', pct(R.last.earningsYield)], ['EV/EBITDA', x(R.last.evEbitda)], ['P/S', x(R.last.psr)]].map(([a, b]) => `<div class="metric"><span>${a}</span><b>${b}</b></div>`).join('')}</div>
+  <div class="row" style="margin-top:12px"><label style="margin:0">Ubah harga (Rp)</label><input id="px2" style="max-width:160px" value="${s.price ? nf(s.price, 0) : ''}"><button class="btn sm" id="setPx">Hitung ulang</button></div>`;
+ } else if (sub === 'profil') {
+  const L2 = (t, a) => a && a.length ? `<h3>${t}</h3><ul>${a.map(i => '<li>' + esc(typeof i === 'string' ? i : Object.values(i).filter(v => v !== null && v !== '').join(' — ') + (i.persen != null || i.kontribusiPersen != null ? '%' : '')) + '</li>').join('')}</ul>` : '';
+  h += `<div class="narr">${s.profil ? '<p>' + esc(s.profil) + '</p>' : '<p class="mute">Belum ada profil. Jalankan bedah dengan AI.</p>'}
+  ${s.ipo && (s.ipo.tanggal || s.ipo.hargaIPO) ? `<h3>IPO</h3><p>${esc(s.ipo.tanggal || '')} ${s.ipo.hargaIPO ? '— harga ' + rp(s.ipo.hargaIPO) : ''}${s.ipo.penggunaanDana ? '<br>Penggunaan dana: ' + esc(s.ipo.penggunaanDana) : ''}</p>` : ''}
+  ${L2('Model bisnis', s.modelBisnis)}${L2('Segmen usaha', s.segmen)}${L2('Pemegang saham utama', s.pemegangSaham)}${L2('Manajemen', s.manajemen)}${L2('Anak usaha', s.anakUsaha)}${L2('Keunggulan kompetitif', s.keunggulanKompetitif)}${L2('Katalis', s.katalis)}${L2('Risiko', s.risiko)}${L2('Tata kelola', s.tataKelola)}</div>`;
+ } else if (sub === 'ai') {
+  h += `<div class="row" style="margin-bottom:10px">${sample ? '<button class="btn sm" id="reNarr">' + (s.narrative ? 'Susun ulang analisis' : 'Susun analisis') + '</button>' : ''}${s.narrativeAt ? '<span class="small mute">Disusun ' + new Date(s.narrativeAt).toLocaleString('id-ID') + ' dari rasio yang dihitung aplikasi</span>' : ''}</div>
+  <div class="narr" id="narrBox">${s.narrative ? md(s.narrative) : '<p class="mute">Belum ada analisis.</p>'}</div>`;
+ } else if (sub === 'tanya') {
+  h += `<p class="mute small">Tanya apa saja tentang ${esc(s.ticker)}. AI menerima seluruh data & rasio emiten ini sebagai konteks.</p><div class="chat" id="chat">${(s.chat || []).map(m => `<div class="msg ${m.role === 'user' ? 'u' : 'a'}">${esc(m.content)}</div>`).join('')}</div>
+  <div class="row" style="margin-top:10px"><input id="q" placeholder="mis. Apakah utangnya berbahaya jika suku bunga naik?" style="flex:1"><button class="btn" id="ask" ${sample ? '' : 'disabled'}>Tanya</button></div>`;
+ } else if (sub === 'catatan') {
+  h += `<label for="notes">Tesis investasi, alasan beli/jual, target harga, hal yang dipantau</label><textarea id="notes" style="min-height:220px">${esc(s.notes || '')}</textarea><p class="small mute" id="noteMsg">Tersimpan otomatis.</p>`;
+ }
+ res.innerHTML = h + '</div></div>'; bindStock();
+}
+
+function bindStock() {
+ const s = state.stocks[cur];
+ document.querySelectorAll('[data-s]').forEach(b => b.onclick = () => { sub = b.dataset.s; renderStock(); });
+ $('#delBtn').onclick = () => { if (confirm('Hapus ' + cur + ' beserta analisisnya? Transaksi di jurnal tidak ikut terhapus.')) { delete state.stocks[cur]; dirty.add(cur); save(); cur = null; $('#result').classList.add('hidden'); } };
+ $('#expBtn').onclick = () => exportReport(cur);
+ document.querySelectorAll('[data-fin]').forEach(inp => inp.onchange = () => { const f = C.sortYears(s.financials)[+inp.dataset.fin]; const v = parseNum(inp.value); f[inp.dataset.k] = v; s.financials = C.sortYears(s.financials); s.updated = new Date().toISOString(); audit(s); dirty.add(cur); save(); inp.value = v === null ? '' : nf(v, 0); inp.style.borderColor = 'var(--acc)'; });
+ document.querySelectorAll('[data-year-edit]').forEach(inp => inp.onchange = () => { const f = s.financials.find(r => r.year == inp.dataset.yearEdit); const y = parseInt(inp.value); if (f && y > 1900) { f.year = y; s.financials = C.sortYears(s.financials); dirty.add(cur); save(); renderStock(); } });
+ const ay = $('#addYear'); if (ay) ay.onclick = () => { const fin = C.sortYears(s.financials); const y = fin.length ? fin[fin.length - 1].year + 1 : new Date().getFullYear() - 1; const o = { year: y }; FIELDS.forEach(([k]) => o[k] = null); s.financials = [...fin, o]; dirty.add(cur); save(); renderStock(); };
+ const dy = $('#delYear'); if (dy) dy.onclick = () => { if (confirm('Hapus data tahun ' + C.sortYears(s.financials)[0].year + '?')) { s.financials = C.sortYears(s.financials).slice(1); dirty.add(cur); save(); renderStock(); } };
+ document.querySelectorAll('[data-dcf]').forEach(inp => inp.onchange = () => { const v = parseNum(inp.value); if (v === null) return; s.dcf = Object.assign({ g: 0.08, r: 0.12, gT: 0.04, years: 5 }, s.dcf); s.dcf[inp.dataset.dcf] = inp.dataset.dcf === 'years' ? Math.max(1, Math.min(20, Math.round(v))) : v / 100; dirty.add(cur); save(); renderStock(); });
+ const sp = $('#setPx'); if (sp) sp.onclick = () => { s.price = parseNum($('#px2').value); $('#px').value = $('#px2').value; dirty.add(cur); save(); renderStock(); };
+ const cd = $('#confirmData'); if (cd) cd.onclick = async () => { audit(s); dirty.add(cur); save(); if (!sample) { alert('Isi kunci API di Pengaturan.'); return; } cd.disabled = true; cd.textContent = 'Menyusun analisis…'; try { await runNarrative(cur, (ctl = new AbortController()).signal); sub = 'ai'; renderStock(); } catch (e) { cd.disabled = false; cd.textContent = errCopy(e); } };
+ const rn = $('#reNarr'); if (rn) rn.onclick = async () => { rn.disabled = true; try { await runNarrative(cur, (ctl = new AbortController()).signal); } catch (e) { $('#narrBox').innerHTML = '<p class="down">' + esc(errCopy(e)) + '</p>'; } rn.disabled = false; };
+ const nt = $('#notes'); if (nt) nt.oninput = () => { s.notes = nt.value; dirty.add(cur); save(); };
+ const ask = $('#ask'); if (ask) { const go = async () => { const q = $('#q').value.trim(); if (!q) return; s.chat = s.chat || []; s.chat.push({ role: 'user', content: q }); $('#q').value = ''; renderStock();
+  const R = compute(s); const ctx = RULES + '\nJawab dalam Bahasa Indonesia, ringkas dan jujur; gunakan angka dari DATA (sudah dihitung pasti, jangan hitung ulang kecuali diminta), sebutkan bila jawaban dari pengetahuan umum Anda, dan bukan rekomendasi beli/jual. DATA: ' + JSON.stringify({ emiten: { ticker: s.ticker, nama: s.nama, sektor: s.sektor, harga: s.price, profil: s.profil, risiko: s.risiko, katalis: s.katalis }, keuangan: R.fin, rasio: R.rows, piotroski: R.pio?.score, altman: R.alt?.z, graham: R.graham, dcf: R.dcf?.perShare, catatanSaya: s.notes }).slice(0, 40000);
+  const turns = [{ role: 'user', content: ctx }, ...s.chat.slice(-10)]; const bubble = document.createElement('div'); bubble.className = 'msg a'; bubble.textContent = 'Berpikir…'; $('#chat').append(bubble); bubble.scrollIntoView({ block: 'end' });
+  try { const { text } = await sample(turns, { cache: false, onText: ({ text }) => { bubble.textContent = text; } }); s.chat.push({ role: 'assistant', content: text }); dirty.add(cur); save(); } catch (e) { bubble.textContent = errCopy(e); s.chat.pop(); } };
+  ask.onclick = go; $('#q').onkeydown = e => { if (e.key === 'Enter') go(); }; }
+}
+
+// ---------- ekspor ----------
+async function saveFile(filename, data) {
+ const blob = new Blob([data], { type: filename.endsWith('.json') ? 'application/json' : 'text/markdown' });
+ try { const f = new File([blob], filename, { type: blob.type }); if (navigator.canShare && navigator.canShare({ files: [f] }) && /Android|iPhone|iPad/i.test(navigator.userAgent)) { await navigator.share({ files: [f], title: filename }); return; } } catch (e) { if (e.name === 'AbortError') return; }
+ const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+function exportReport(tk) {
+ const s = state.stocks[tk], R = compute(s), L = R.last;
+ let t = `# Laporan Bedah Emiten ${s.ticker} — ${s.nama || ''}\nDibuat ${new Date().toLocaleString('id-ID')} | Harga: ${rp(s.price)} | Sumber data: ${s.source || '-'}\n\n## Ringkasan\nSkor kualitas: ${R.quality ?? '-'} / 100\nPER ${x(L.per)} | PBV ${x(L.pbv)} | ROE ${pct(L.roe)} | NPM ${pct(L.npm)} | DER ${x(L.der)} | DY ${pct(L.divYield)}\nCAGR pendapatan ${pct(R.cagrRev)} | CAGR laba ${pct(R.cagrNi)}\nPiotroski ${R.pio ? R.pio.score + '/' + R.pio.known : '-'} | Altman Z ${R.alt ? nf(R.alt.z) + ' (' + R.alt.zone + ')' : '-'}\nGraham ${rp(R.graham)} | DCF ${rp(R.dcf?.perShare)} | Nilai wajar rata-rata ${rp(R.fair)} | Margin of safety ${pct(R.mos)}\n\n## Laporan keuangan (Rp)\n| Pos | ${R.fin.map(f => f.year).join(' | ')} |\n|---|${R.fin.map(() => '---:').join('|')}|\n`;
+ FIELDS.forEach(([k, l]) => t += `| ${l} | ${R.fin.map(f => f[k] === null || f[k] === undefined ? '–' : nf(f[k], 0)).join(' | ')} |\n`);
+ t += `\n## Rasio\n| Rasio | ${R.rows.map(r => r.year).join(' | ')} |\n|---|${R.rows.map(() => '---:').join('|')}|\n`;
+ [['GPM', 'gpm', pct], ['NPM', 'npm', pct], ['ROE', 'roe', pct], ['ROA', 'roa', pct], ['Current ratio', 'currentRatio', x], ['DER', 'der', x], ['EPS', 'eps', v => nf(v, 2)], ['BVPS', 'bvps', v => nf(v, 2)], ['FCF', 'fcf', big], ['Pertumbuhan pendapatan', 'revGrowth', pct], ['Pertumbuhan laba', 'niGrowth', pct]].forEach(([l, k, f]) => t += `| ${l} | ${R.rows.map(r => f(r[k])).join(' | ')} |\n`);
+ if (s.profil) t += `\n## Profil\n${s.profil}\n`;
+ if (s.narrative) t += `\n## Analisis\n${s.narrative}\n`;
+ if (s.notes) t += `\n## Catatan saya\n${s.notes}\n`;
+ saveFile(`Bedah-${s.ticker}-${new Date().toISOString().slice(0, 10)}.md`, t);
+}
+$('#exportAll').onclick = () => { const { settings, ...rest } = state; saveFile('bedah-emiten-cadangan-' + new Date().toISOString().slice(0, 10) + '.json', JSON.stringify(rest, null, 1)); };
+$('#importAll').onchange = async e => { const f = e.target.files[0]; if (!f) return; try { const d = JSON.parse(await f.text()); if (!d.stocks) throw 0; if (!confirm('Gabungkan cadangan ini dengan data sekarang?')) return; Object.assign(state.stocks, d.stocks); Object.keys(d.stocks).forEach(k => dirty.add(k)); const ids = new Set(state.trades.map(t => t.id)); (d.trades || []).forEach(t => { if (!ids.has(t.id)) state.trades.push(t); }); Object.assign(state.prices, d.prices || {}); if (d.plan) { const P = state.plan; Object.assign(P.targets, d.plan.targets || {}); Object.assign(P.alloc, d.plan.alloc || {}); const ids = new Set(P.dca.map(x => x.id)); (d.plan.dca || []).forEach(x => { if (!ids.has(x.id)) P.dca.push(x); }); } save(); renderList(); alert('Cadangan dipulihkan.'); } catch (_) { alert('Berkas bukan cadangan Bedah Emiten.'); } };
+
+// ---------- daftar ----------
+function renderList() {
+ const ks = Object.keys(state.stocks).sort();
+ $('#listTbl').innerHTML = ks.length ? `<thead><tr><th>Kode</th><th>Harga</th><th>Skor</th><th>PER</th><th>PBV</th><th>ROE</th><th>DER</th><th>MoS</th><th>Diperbarui</th></tr></thead><tbody>` + ks.map(k => { const s = state.stocks[k], R = compute(s), L = R.last;
+  return `<tr><td><button class="chip" data-open="${k}">${k}</button> <span class="small mute">${esc(s.nama || '')}</span></td><td>${rp(s.price)}</td><td>${R.quality ?? '–'}</td><td>${x(L.per)}</td><td>${x(L.pbv)}</td><td>${pct(L.roe)}</td><td>${x(L.der)}</td><td class="${cls(R.mos)}">${pct(R.mos)}</td><td class="small mute">${new Date(s.updated).toLocaleDateString('id-ID')}</td></tr>`; }).join('') + '</tbody>' : '<tbody><tr><td class="mute">Belum ada emiten. Mulai dari tab Bedah saham.</td></tr></tbody>';
+ document.querySelectorAll('[data-open]').forEach(b => b.onclick = () => openStock(b.dataset.open));
+}
+
+// ---------- portofolio ----------
+$('#tr-type').onchange = () => { const d = $('#tr-type').value === 'div'; document.querySelectorAll('.trq').forEach(e => e.classList.toggle('hidden', d)); document.querySelector('.trd').classList.toggle('hidden', !d); };
+$('#tr-date').value = new Date().toISOString().slice(0, 10);
+$('#addTr').onclick = () => {
+ const tk = $('#tr-tk').value.trim().toUpperCase(), type = $('#tr-type').value, msg = $('#trMsg');
+ if (!/^[A-Z]{2,6}$/.test(tk)) { msg.textContent = 'Isi kode saham.'; msg.className = 'small down'; return; }
+ const t = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), t: Date.now(), ticker: tk, type, date: $('#tr-date').value, note: $('#tr-note').value.trim() };
+ if (type === 'div') { t.amount = parseNum($('#tr-amt').value); if (!(t.amount > 0)) { msg.textContent = 'Isi jumlah dividen.'; msg.className = 'small down'; return; } }
+ else { t.lots = parseNum($('#tr-lots').value); t.price = parseNum($('#tr-price').value); t.fee = parseNum($('#tr-fee').value) || 0;
+  if (!(t.lots > 0) || !Number.isInteger(t.lots)) { msg.textContent = 'Jumlah lot harus bilangan bulat > 0.'; msg.className = 'small down'; return; }
+  if (!(t.price > 0)) { msg.textContent = 'Isi harga per lembar.'; msg.className = 'small down'; return; }
+  if (type === 'sell') { const p = C.position(state.trades.filter(x => x.ticker === tk && x.date <= t.date)); if (t.lots * 100 > p.qty) { msg.textContent = 'Lot dijual (' + t.lots + ') melebihi kepemilikan (' + nf(p.lots, 0) + ' lot).'; msg.className = 'small down'; return; } } }
+ state.trades.push(t); save(); msg.textContent = 'Tercatat.'; msg.className = 'small up'; ['#tr-lots', '#tr-price', '#tr-fee', '#tr-amt', '#tr-note'].forEach(s => $(s).value = ''); renderPorto();
+};
+function renderPorto() {
+ const tks = [...new Set(state.trades.map(t => t.ticker))].sort(); let tv = 0, tc = 0, tr = 0, td = 0, tu = 0, hasAllPx = true;
+ const rows = tks.map(k => { const p = C.position(state.trades.filter(t => t.ticker === k)); const px = C.num(state.prices[k] ?? state.stocks[k]?.price);
+  const val = px !== null ? p.qty * px : null, unr = val !== null ? val - p.cost : null; if (p.qty && px === null) hasAllPx = false;
+  if (val !== null) tv += val; tc += p.cost; tr += p.realized; td += p.divs; if (unr !== null) tu += unr; return { k, p, px, val, unr }; });
+ $('#posTbl').innerHTML = rows.length ? `<thead><tr><th>Kode</th><th>Lot</th><th>Harga rata-rata</th><th>Modal</th><th>Harga terakhir</th><th>Nilai pasar</th><th>Untung/rugi belum terealisasi</th><th>Terealisasi</th><th>Dividen</th></tr></thead><tbody>` + rows.map(r => `<tr><td><b>${r.k}</b></td><td>${nf(r.p.lots, 0)}</td><td>${rp(r.p.avg, 2)}</td><td>${rp(r.p.cost)}</td><td><input data-px="${r.k}" value="${r.px !== null ? nf(r.px, 0) : ''}" placeholder="isi"></td><td>${rp(r.val)}</td><td class="${cls(r.unr)}">${rp(r.unr)} ${r.unr !== null && r.p.cost ? '(' + pct(r.unr / r.p.cost) + ')' : ''}</td><td class="${cls(r.p.realized)}">${rp(r.p.realized)}</td><td>${rp(r.p.divs)}</td></tr>`).join('') + '</tbody>' : '<tbody><tr><td class="mute">Belum ada transaksi.</td></tr></tbody>';
+ $('#posSum').innerHTML = rows.length ? `<div class="metric-grid">${[['Total modal saat ini', rp(tc)], ['Nilai pasar', hasAllPx ? rp(tv) : 'lengkapi harga'], ['Belum terealisasi', `<span class="${cls(tu)}">${hasAllPx ? rp(tu) : '–'}</span>`], ['Terealisasi', `<span class="${cls(tr)}">${rp(tr)}</span>`], ['Dividen diterima', rp(td)], ['Total hasil', `<span class="${cls(tr + td + tu)}">${hasAllPx ? rp(tr + td + tu) : '–'}</span>`]].map(([a, b]) => `<div class="metric"><span>${a}</span><b>${b}</b></div>`).join('')}</div>` : '';
+ document.querySelectorAll('[data-px]').forEach(i => i.onchange = () => { const v = parseNum(i.value); if (v === null) delete state.prices[i.dataset.px]; else state.prices[i.dataset.px] = v; save(); renderPorto(); });
+ const tt = [...state.trades].sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.t - a.t);
+ $('#trTbl').innerHTML = tt.length ? `<thead><tr><th>Tanggal</th><th>Kode</th><th>Jenis</th><th>Lot</th><th>Harga</th><th>Biaya</th><th>Nilai</th><th style="text-align:left">Catatan</th><th></th></tr></thead><tbody>` + tt.map(t => `<tr><td>${esc(t.date)}</td><td>${esc(t.ticker)}</td><td>${{ buy: 'Beli', sell: 'Jual', div: 'Dividen' }[t.type]}</td><td>${t.type === 'div' ? '' : nf(t.lots, 0)}</td><td>${t.type === 'div' ? '' : rp(t.price)}</td><td>${t.type === 'div' ? '' : rp(t.fee)}</td><td>${t.type === 'div' ? rp(t.amount) : rp(t.lots * 100 * t.price)}</td><td style="text-align:left;white-space:normal;min-width:180px">${esc(t.note)}</td><td><button class="btn danger sm" data-deltr="${t.id}">Hapus</button></td></tr>`).join('') + '</tbody>' : '';
+ document.querySelectorAll('[data-deltr]').forEach(b => b.onclick = () => { if (confirm('Hapus transaksi ini?')) { state.trades = state.trades.filter(t => t.id !== b.dataset.deltr); save(); renderPorto(); } });
+}
+function renderAll() { renderList(); if (!$('#v-porto').classList.contains('hidden')) renderPorto(); if (cur) renderStock(); }
+
+// ---------- AI langsung ke Anthropic API ----------
+const RULES = `PERAN: analis ekuitas Bursa Efek Indonesia yang bekerja untuk SATU investor ritel pribadi. Jawab dalam Bahasa Indonesia.
+PROFIL & ATURAN PENGGUNA (wajib dipatuhi):
+1. Jangan pernah mengarang atau menambah angka buatan sendiri (termasuk angka "penyesuaian" atau "penyeimbang"). Jika tidak ada di sumber atau Anda tidak yakin: isi null / katakan tidak tahu.
+2. Saat membaca laporan keuangan, ambil angka hanya dari tabel laporan utama (posisi keuangan, laba rugi, arus kas) dan catatan resminya; abaikan hitungan/coretan di luar tabel.
+3. Jika data meragukan (satuan tidak jelas, angka tidak terbaca, tahun tidak pasti), tandai di "catatanSumber" alih-alih menebak.
+4. Aplikasi yang menghitung semua rasio dengan rumus pasti. Anda TIDAK boleh menghitung rasio sendiri dan tidak boleh menyebut rasio yang tidak ada di data yang diberikan.
+5. Pengguna ingin hasil tuntas dan benar sekali jalan, bukan setengah jadi. Lugas, jujur tentang kelemahan emiten, tanpa hype. Bukan rekomendasi beli/jual.`;
+const toB64 = f => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(f); });
+function makeSample() {
+ const call = async (input, o = {}) => {
+  const st = state.settings, prov = st.provider, key = st.keys[prov], model = st.models[prov] || PROV[prov].model; if (!key) throw { code: 'no_key' };
+  let msgs = typeof input === 'string' ? [{ role: 'user', content: input }] : input.map(m => ({ role: m.role, content: m.content }));
+  const merged = []; msgs.forEach(m => { const l = merged[merged.length - 1]; if (l && l.role === m.role) l.content += '\n\n' + m.content; else merged.push({ ...m }); });
+  if (o.images && o.images.length && prov === 'anthropic') { const last = merged[merged.length - 1]; const blocks = [];
+   for (const f of o.images) { const data = await toB64(f); if (f.type === 'application/pdf') blocks.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data } }); else blocks.push({ type: 'image', source: { type: 'base64', media_type: f.type || 'image/jpeg', data } }); }
+   last.content = [...blocks, { type: 'text', text: last.content }]; }
+  if (prov === 'gemini') return callGemini(merged, o, key, model);
+  if (prov === 'openai') return callOpenAI(merged, o, key, model, st.baseUrl);
+  let res;
+  try { res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', signal: o.signal, headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: JSON.stringify({ model, max_tokens: o.maxTokens || 8000, temperature: 0, messages: merged }) }); }
+  catch (e) { throw { code: e.name === 'AbortError' ? 'cancelled' : 'network', message: e.message }; }
+  if (!res.ok) { const t = await res.text().catch(() => ''); throw { code: res.status === 401 || res.status === 403 ? 'bad_key' : res.status === 429 ? 'rate_limited' : res.status === 529 ? 'overloaded' : res.status === 413 ? 'prompt_too_large' : 'http', message: res.status + ' ' + t.slice(0, 300) }; }
+  const d = await res.json(); const text = (d.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+  o.onText && o.onText({ text, delta: text }); return { text, truncated: d.stop_reason === 'max_tokens' };
+ };
+ call.json = async (input, o = {}) => { const { text, truncated } = await call(input, { ...o, maxTokens: 16000 }); if (truncated) throw { code: 'invalid_json', text };
+  const c = text.replace(/```json|```/g, ''); const a = c.indexOf('{'), b = c.lastIndexOf('}'); try { return JSON.parse(c.slice(a, b + 1)); } catch (e) { throw { code: 'invalid_json', text }; } };
+ return call;
+}
+const PROV = {
+ gemini: { model: 'gemini-2.5-flash', models: ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.5-flash-lite'], help: 'Kunci gratis: buka aistudio.google.com → masuk dengan akun Google → Get API key → Create API key → salin. Kuota gratis terbatas per menit dan per hari. Pada paket gratis, Google dapat memakai data yang dikirim untuk meningkatkan layanannya.' },
+ openai: { model: 'meta-llama/llama-3.3-70b-instruct:free', models: ['meta-llama/llama-3.3-70b-instruct:free', 'llama-3.3-70b-versatile'], help: 'OpenRouter: daftar di openrouter.ai → Keys → Create Key; pilih model berakhiran ":free" dari daftar model di situsnya. Groq: daftar di console.groq.com → API Keys; model mis. llama-3.3-70b-versatile. Umumnya hanya teks: tempel teks laporan, bukan PDF.' },
+ anthropic: { model: 'claude-sonnet-5', models: ['claude-sonnet-5', 'claude-opus-5-5', 'claude-haiku-4-5-20251001'], help: 'Buat kunci di console.anthropic.com → Billing (isi saldo) → API Keys → Create Key. Berbayar sesuai pemakaian.' } };
+const httpErr = async (res) => { const t = await res.text().catch(() => ''); const low = t.toLowerCase();
+ return { code: res.status === 401 || res.status === 403 || low.includes('api key not valid') || low.includes('api_key_invalid') ? 'bad_key' : res.status === 429 ? 'rate_limited' : res.status === 529 || res.status === 503 ? 'overloaded' : res.status === 413 ? 'prompt_too_large' : 'http', message: res.status + ' ' + t.slice(0, 300) }; };
+async function callGemini(msgs, o, key, model) {
+ const contents = msgs.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }));
+ if (o.images && o.images.length) { const last = contents[contents.length - 1]; const parts = [];
+  for (const f of o.images) parts.push({ inline_data: { mime_type: f.type || 'image/jpeg', data: await toB64(f) } });
+  last.parts = [...parts, ...last.parts]; }
+ let res;
+ try { res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent', { method: 'POST', signal: o.signal, headers: { 'content-type': 'application/json', 'x-goog-api-key': key }, body: JSON.stringify({ contents, generationConfig: { temperature: 0, maxOutputTokens: Math.max(o.maxTokens || 8000, 2048) } }) }); }
+ catch (e) { throw { code: e.name === 'AbortError' ? 'cancelled' : 'network', message: e.message }; }
+ if (!res.ok) throw await httpErr(res);
+ const d = await res.json(); const c = (d.candidates || [])[0] || {};
+ if (!c.content && d.promptFeedback && d.promptFeedback.blockReason) throw { code: 'http', message: 'Diblokir filter Gemini: ' + d.promptFeedback.blockReason };
+ const text = ((c.content || {}).parts || []).filter(p => p.text && !p.thought).map(p => p.text).join('');
+ o.onText && text && o.onText({ text, delta: text }); return { text, truncated: c.finishReason === 'MAX_TOKENS' };
+}
+async function callOpenAI(msgs, o, key, model, base) {
+ const messages = msgs.map(m => ({ role: m.role, content: m.content }));
+ if (o.images && o.images.length) { if ([...o.images].some(f => f.type === 'application/pdf')) throw { code: 'pdf_unsupported' };
+  const last = messages[messages.length - 1]; const parts = [{ type: 'text', text: last.content }];
+  for (const f of o.images) parts.push({ type: 'image_url', image_url: { url: 'data:' + (f.type || 'image/jpeg') + ';base64,' + await toB64(f) } });
+  last.content = parts; }
+ let res;
+ try { res = await fetch((base || '').replace(/\/+$/, '') + '/chat/completions', { method: 'POST', signal: o.signal, headers: { 'content-type': 'application/json', 'authorization': 'Bearer ' + key }, body: JSON.stringify({ model, messages, temperature: 0, max_tokens: o.maxTokens || 8000 }) }); }
+ catch (e) { throw { code: e.name === 'AbortError' ? 'cancelled' : 'network', message: e.message }; }
+ if (!res.ok) throw await httpErr(res);
+ const d = await res.json(); const ch = (d.choices || [])[0] || {}; const text = (ch.message && ch.message.content) || '';
+ if (d.error) throw { code: 'http', message: JSON.stringify(d.error).slice(0, 300) };
+ o.onText && text && o.onText({ text, delta: text }); return { text, truncated: ch.finish_reason === 'length' };
+}
+// ---------- harga online ----------
+async function fetchPrice(tk) {
+ const p = state.settings.price; const url = p.url.replace(/\{TICKER\}/g, encodeURIComponent(tk)); const h = {}; if (p.hName) h[p.hName] = p.hVal;
+ let r; try { r = await fetch(url, { headers: h }); } catch (e) { throw new Error('tidak bisa terhubung (tanpa internet atau diblokir penyedia)'); }
+ if (!r.ok) throw new Error('penyedia menjawab HTTP ' + r.status);
+ const j = await r.json(); const v = p.path.split('.').reduce((o, k) => o == null ? o : o[k], j); const n = typeof v === 'number' ? v : parseNum(v);
+ if (!(n > 0)) throw new Error('harga tidak ditemukan di lokasi "' + p.path + '"'); return n;
+}
+$('#pxOnline').onclick = async () => { const tk = $('#tk').value.trim().toUpperCase(); if (!tk) { $('#goStatus').textContent = 'Isi kode saham dulu.'; return; } $('#goStatus').textContent = 'Mengambil harga ' + tk + '…';
+ try { const v = await fetchPrice(tk); $('#px').value = nf(v, 0); state.prices[tk] = v; if (state.stocks[tk]) { state.stocks[tk].price = v; dirty.add(tk); } save(); $('#goStatus').textContent = 'Harga ' + tk + ': ' + rp(v) + ' (online).'; if (cur === tk) renderStock(); } catch (e) { $('#goStatus').textContent = 'Gagal ambil harga: ' + e.message + '. Isi manual.'; } };
+$('#pxAll').onclick = async () => { const tks = [...new Set(state.trades.map(t => t.ticker))]; const m = $('#pxAllMsg'); const fail = [];
+ for (const tk of tks) { m.textContent = 'Mengambil ' + tk + '…'; try { state.prices[tk] = await fetchPrice(tk); } catch (e) { fail.push(tk); } }
+ save(); renderPorto(); m.textContent = fail.length ? 'Gagal: ' + fail.join(', ') + ' — isi manual.' : 'Semua harga diperbarui.'; m.className = 'small ' + (fail.length ? 'warn' : 'up'); };
+// ---------- pengaturan ----------
+function renderSettings() { const st = state.settings; $('#set-prov').value = st.provider; provUI(); $('#set-pmode').value = st.price.mode; $('#set-url').value = st.price.url; $('#set-path').value = st.price.path; $('#set-hn').value = st.price.hName; $('#set-hv').value = st.price.hVal; $('#onlineBox').classList.toggle('hidden', st.price.mode !== 'online'); }
+function provUI() { const st = state.settings, p = $('#set-prov').value, P = PROV[p];
+ $('#set-key').value = st.keys[p] || ''; $('#set-key').placeholder = p === 'anthropic' ? 'sk-ant-...' : p === 'gemini' ? 'AIza...' : 'sk-or-... / gsk_...';
+ $('#set-model').value = st.models[p] || P.model; $('#modelList').innerHTML = P.models.map(m => '<option value="' + m + '">').join('');
+ $('#baseBox').classList.toggle('hidden', p !== 'openai'); $('#set-base').value = st.baseUrl || ''; $('#provHelp').textContent = P.help; }
+$('#set-prov').onchange = provUI;
+$('#presetOR').onclick = () => { $('#set-base').value = 'https://openrouter.ai/api/v1'; $('#set-model').value = 'meta-llama/llama-3.3-70b-instruct:free'; };
+$('#presetGroq').onclick = () => { $('#set-base').value = 'https://api.groq.com/openai/v1'; $('#set-model').value = 'llama-3.3-70b-versatile'; };
+$('#set-pmode').onchange = () => { state.settings.price.mode = $('#set-pmode').value; save(); renderSettings(); refreshMode(); };
+$('#presetYahoo').onclick = () => { $('#set-url').value = 'https://query1.finance.yahoo.com/v8/finance/chart/{TICKER}.JK'; $('#set-path').value = 'chart.result.0.meta.regularMarketPrice'; $('#set-hn').value = ''; $('#set-hv').value = ''; };
+$('#saveAi').onclick = async () => { const st = state.settings, p = $('#set-prov').value; st.provider = p; st.keys[p] = $('#set-key').value.trim(); st.models[p] = $('#set-model').value.trim() || PROV[p].model; if (p === 'openai') st.baseUrl = $('#set-base').value.trim(); save(); refreshMode(); const m = $('#aiMsg');
+ if (!sample) { m.textContent = 'Kunci dihapus. AI nonaktif.'; m.className = 'small'; return; } m.textContent = 'Menguji…'; m.className = 'small';
+ try { const { text } = await sample('Balas hanya dengan kata: SIAP', { maxTokens: 300 }); m.textContent = 'Terhubung (' + text.trim().slice(0, 20) + ').'; m.className = 'small up'; } catch (e) { m.textContent = errCopy(e) + (e.message ? ' [' + e.message.slice(0, 120) + ']' : ''); m.className = 'small down'; } };
+$('#savePx').onclick = async () => { Object.assign(state.settings.price, { url: $('#set-url').value.trim(), path: $('#set-path').value.trim(), hName: $('#set-hn').value.trim(), hVal: $('#set-hv').value }); save(); refreshMode(); const m = $('#pxMsg');
+ const tk = ($('#set-test').value.trim() || 'BBCA').toUpperCase(); m.textContent = 'Menguji ' + tk + '…'; m.className = 'small';
+ try { const v = await fetchPrice(tk); m.textContent = tk + ' = ' + rp(v) + '. Berhasil.'; m.className = 'small up'; } catch (e) { m.textContent = 'Gagal: ' + e.message; m.className = 'small down'; } };
+
+// ---------- rencana ----------
+const curPrice = tk => C.num(state.prices[tk] ?? state.stocks[tk]?.price);
+const holdQty = tk => C.position(state.trades.filter(t => t.ticker === tk)).qty;
+function planMsg(id, t, ok) { const m = $(id); m.textContent = t; m.className = 'small ' + (ok ? 'up' : 'down'); }
+function renderAlerts() {
+ const hits = []; Object.entries(state.plan.targets).forEach(([tk, t]) => C.alertState(curPrice(tk), t).forEach(a => hits.push(tk + ': ' + a.msg + ' (' + rp(curPrice(tk)) + ')')));
+ const bar = $('#alertBar'); bar.classList.toggle('hidden', !hits.length); bar.innerHTML = '<b>Target tercapai:</b> ' + esc(hits.join(' — ')); bar.onclick = () => show('rencana');
+ $('#alertBadge').textContent = hits.length ? ' (' + hits.length + ')' : '';
+}
+function renderPlan() {
+ const P = state.plan; $('#pl-fb').value = nf(P.feeBuy * 100, 2); $('#pl-fs').value = nf(P.feeSell * 100, 2); $('#al-cap').value = P.capital ? nf(P.capital, 0) : '';
+ const tg = Object.keys(P.targets).sort();
+ $('#tgTbl').innerHTML = tg.length ? '<thead><tr><th>Kode</th><th>Harga terakhir</th><th>Target beli</th><th>Target jual</th><th>Stop loss</th><th>Status</th><th style="text-align:left">Alasan</th><th></th></tr></thead><tbody>' + tg.map(k => { const t = P.targets[k], px = curPrice(k), a = C.alertState(px, t);
+  return `<tr><td><b>${k}</b></td><td>${px === null ? '<span class="mute">belum ada</span>' : rp(px)}</td><td>${rp(t.buy)}</td><td>${rp(t.sell)}</td><td>${rp(t.stop)}</td><td class="${a.length ? 'warn' : 'mute'}">${a.length ? esc(a.map(x => x.msg).join('; ')) : 'Menunggu'}</td><td style="text-align:left;white-space:normal;min-width:160px">${esc(t.note || '')}</td><td><button class="btn danger sm" data-deltg="${k}">Hapus</button></td></tr>`; }).join('') + '</tbody>' : '';
+ document.querySelectorAll('[data-deltg]').forEach(b => b.onclick = () => { delete P.targets[b.dataset.deltg]; save(); renderPlan(); renderAlerts(); });
+ const items = Object.keys(P.alloc).sort().map(k => ({ ticker: k, pct: P.alloc[k], price: curPrice(k), qty: holdQty(k) }));
+ const rb = C.rebalance({ capital: P.capital, items, fee: P.feeBuy });
+ if (!items.length) { $('#alTbl').innerHTML = ''; $('#alSum').textContent = ''; }
+ else if (!rb) { $('#alTbl').innerHTML = ''; $('#alSum').innerHTML = '<span class="warn">Isi total dana portofolio untuk menghitung.</span>'; }
+ else { $('#alTbl').innerHTML = '<thead><tr><th>Kode</th><th>Porsi target</th><th>Porsi sekarang</th><th>Nilai sekarang</th><th>Nilai target</th><th>Saran</th><th></th></tr></thead><tbody>' + rb.rows.map(r => `<tr><td><b>${r.ticker}</b></td><td>${pct(r.pct)}</td><td>${pct(r.curPct)}</td><td>${rp(r.cur)}</td><td>${rp(r.target)}</td><td>${r.price === null ? '<span class="warn">isi harga dulu</span>' : r.buyLots ? '<span class="up">Beli ' + nf(r.buyLots, 0) + ' lot (≈' + rp(r.buyCost) + ')</span>' : r.sellLots ? '<span class="down">Jual ' + nf(r.sellLots, 0) + ' lot</span>' : 'Sesuai target'}</td><td><button class="btn danger sm" data-delal="${r.ticker}">Hapus</button></td></tr>`).join('') + '</tbody>';
+  $('#alSum').innerHTML = rb.sum > 1.0000001 ? '<span class="down">Total porsi ' + pct(rb.sum) + ' melebihi 100%. Kurangi porsinya.</span>' : 'Total porsi saham ' + pct(rb.sum) + '. Sisa untuk kas: ' + rp(rb.cash) + '.'; }
+ document.querySelectorAll('[data-delal]').forEach(b => b.onclick = () => { delete P.alloc[b.dataset.delal]; save(); renderPlan(); });
+ $('#dcList').innerHTML = P.dca.map(d => { const px = curPrice(d.ticker), r = C.dca({ amount: d.amount, periods: d.periods, price: px, fee: P.feeBuy });
+  const mon = i => { if (!d.start) return 'Bulan ' + i; const [y, m] = d.start.split('-').map(Number); const dt = new Date(y, m - 1 + i - 1, 1); return dt.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' }); };
+  return `<div class="panel" style="background:var(--bg)"><div class="row" style="justify-content:space-between"><b>${d.ticker} — ${rp(d.amount)} / bulan × ${d.periods} bulan</b><button class="btn danger sm" data-deldc="${d.id}">Hapus</button></div>` +
+   (!r ? '<p class="warn small">Isi harga ' + d.ticker + ' (di Bedah saham atau Portofolio) untuk menghitung jadwal.</p>' : `<p class="small mute">Asumsi harga tetap ${rp(px)}; biaya per lot termasuk biaya beli: ${rp(r.unit, 2)}.</p><div class="scroll"><table><thead><tr><th>Periode</th><th>Beli (lot)</th><th>Biaya</th><th>Sisa dana dibawa</th></tr></thead><tbody>${r.rows.map(x => `<tr><td>${mon(x.i)}</td><td>${nf(x.lots, 0)}</td><td>${rp(x.cost)}</td><td>${rp(x.left)}</td></tr>`).join('')}<tr><td><b>Total</b></td><td><b>${nf(r.totLots, 0)}</b></td><td><b>${rp(r.totCost)}</b></td><td><b>${rp(r.left)}</b></td></tr></tbody></table></div>${r.totLots === 0 ? '<p class="warn small">Dana per bulan belum cukup untuk 1 lot; dana akan terkumpul sampai cukup.</p>' : ''}`) + '</div>'; }).join('');
+ document.querySelectorAll('[data-deldc]').forEach(b => b.onclick = () => { P.dca = P.dca.filter(d => d.id !== b.dataset.deldc); save(); renderPlan(); });
+}
+const tkOk = v => /^[A-Z]{2,6}$/.test(v);
+$('#pl-fb').onchange = () => { const v = parseNum($('#pl-fb').value); if (v !== null && v >= 0 && v < 5) { state.plan.feeBuy = v / 100; save(); renderPlan(); } };
+$('#pl-fs').onchange = () => { const v = parseNum($('#pl-fs').value); if (v !== null && v >= 0 && v < 5) { state.plan.feeSell = v / 100; save(); renderPlan(); } };
+$('#al-cap').onchange = () => { const v = parseNum($('#al-cap').value); state.plan.capital = v > 0 ? v : null; save(); renderPlan(); };
+$('#tg-add').onclick = () => { const tk = $('#tg-tk').value.trim().toUpperCase(); if (!tkOk(tk)) return planMsg('#tg-msg', 'Isi kode saham.');
+ const t = { buy: parseNum($('#tg-buy').value), sell: parseNum($('#tg-sell').value), stop: parseNum($('#tg-stop').value), note: $('#tg-note').value.trim() };
+ if (t.buy === null && t.sell === null && t.stop === null) return planMsg('#tg-msg', 'Isi minimal satu harga target.');
+ if ([t.buy, t.sell, t.stop].some(v => v !== null && !(v > 0))) return planMsg('#tg-msg', 'Harga harus lebih dari 0.');
+ if (t.stop !== null && t.sell !== null && t.stop >= t.sell) return planMsg('#tg-msg', 'Stop loss harus di bawah target jual.');
+ state.plan.targets[tk] = t; save(); ['#tg-tk', '#tg-buy', '#tg-sell', '#tg-stop', '#tg-note'].forEach(s => $(s).value = ''); planMsg('#tg-msg', 'Target ' + tk + ' disimpan.', 1); renderPlan(); renderAlerts(); };
+$('#al-add').onclick = () => { const tk = $('#al-tk').value.trim().toUpperCase(), v = parseNum($('#al-pct').value); if (!tkOk(tk)) return planMsg('#al-msg', 'Isi kode saham.');
+ if (!(v > 0 && v <= 100)) return planMsg('#al-msg', 'Porsi harus antara 0 dan 100%.');
+ const other = Object.entries(state.plan.alloc).filter(([k]) => k !== tk).reduce((a, [, p]) => a + p, 0); if (other + v / 100 > 1.0000001) return planMsg('#al-msg', 'Total porsi jadi ' + nf((other * 100) + v, 2) + '%, melebihi 100%.');
+ state.plan.alloc[tk] = v / 100; save(); $('#al-tk').value = ''; $('#al-pct').value = ''; planMsg('#al-msg', 'Porsi ' + tk + ' disimpan.', 1); renderPlan(); };
+$('#dc-add').onclick = () => { const tk = $('#dc-tk').value.trim().toUpperCase(), amt = parseNum($('#dc-amt').value), n = parseNum($('#dc-n').value);
+ if (!tkOk(tk)) return planMsg('#dc-msg', 'Isi kode saham.'); if (!(amt > 0)) return planMsg('#dc-msg', 'Isi dana per bulan.'); if (!(n >= 1 && n <= 600 && Number.isInteger(n))) return planMsg('#dc-msg', 'Jumlah bulan 1–600.');
+ state.plan.dca.push({ id: Date.now().toString(36), ticker: tk, amount: amt, periods: n, start: $('#dc-start').value }); save(); ['#dc-tk', '#dc-amt', '#dc-n'].forEach(s => $(s).value = ''); planMsg('#dc-msg', 'Rencana dibuat.', 1); renderPlan(); };
+$('#dc-start').value = new Date().toISOString().slice(0, 7);
+
+// ---------- mulai ----------
+
+$('#tk').onkeydown = e => { if (e.key === 'Enter') $('#goBtn').click(); };
+FIELDS.forEach(([k, l]) => G.labels[k] = l);
+$('#storeNote').textContent = 'Data tersimpan di perangkat ini. Unduh cadangan secara berkala.';
+function refreshMode() {
+ sample = state.settings.keys[state.settings.provider] ? makeSample() : null;
+ $('#noAi').classList.toggle('hidden', !!sample); $('#goBtn').textContent = sample ? 'Bedah sekarang' : 'Buka / buat emiten (isi manual)';
+ const on = state.settings.price.mode === 'online' && state.settings.price.url && state.settings.price.path;
+ $('#pxOnline').classList.toggle('hidden', !on); $('#pxAll').classList.toggle('hidden', !on);
+}
+startApp();
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+async function startApp() { await loadStore(); renderList(); refreshMode(); renderAlerts(); checkQuota(); }
+window.__T = { G, C, compute, parseNum, state, openStock, renderPorto, blankStock, exportReport };
+})();
+</script></body></html>
