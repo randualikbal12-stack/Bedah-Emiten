@@ -885,7 +885,7 @@ const QFIELDS = ['revenue', 'grossProfit', 'operatingProfit', 'netIncome', 'cfo'
 const FLABEL = k => (FIELDS.find(f => f[0] === k) || [k, k])[1];
 const LS = 'bedahEmiten.v1';
 let state = { stocks: {}, trades: [], prices: {}, plan: { feeBuy: 0.0015, feeSell: 0.0025, capital: null, alloc: {}, targets: {}, dca: [] }, settings: { provider: 'gemini', keys: {}, models: {}, baseUrl: 'https://openrouter.ai/api/v1', apiKey: '', model: '', price: { mode: 'offline', url: '', path: '', hName: '', hVal: '' } } };
-let db = null, uid = null, sample = null, cur = null, images = [], ctl = null, sub = 'ringkas';
+let AI_IMG = 0, db = null, uid = null, sample = null, cur = null, images = [], ctl = null, sub = 'ringkas';
 
 // ---------- format ----------
 const nf = (v, d = 2) => v === null || v === undefined || !isFinite(v) ? '–' : Number(v).toLocaleString('id-ID', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -1013,16 +1013,12 @@ $('#imgs').onchange = async e => {
  }
  images.forEach(f => { if (isPdf(f)) { const c = document.createElement('span'); c.className = 'chip'; c.textContent = f.name; $('#thumbs').append(c); } else { const i = document.createElement('img'); i.src = URL.createObjectURL(f); i.alt = f.name; $('#thumbs').append(i); } });
  fileDocs.forEach(d => { const c = document.createElement('span'); c.className = 'chip'; c.textContent = d.name; $('#thumbs').append(c); });
- const big = images.reduce((a, f) => a + f.size, 0) > 18e6; if (big) notes.push('PDF/gambar lebih dari 18 MB bisa ditolak AI; pakai laporan keuangan saja (bukan laporan tahunan penuh)');
- const cnt = images.length + fileDocs.length; $('#imgnote').textContent = (cnt ? cnt + ' file siap dibedah' + (images.length ? ' (' + images.length + ' gambar/PDF)' : '') + '. ' : '') + notes.join('. ');
+ 
+ const cnt = images.length + fileDocs.length; $('#imgnote').textContent = (cnt ? cnt + ' file siap dibedah. ' + (cnt > 1 ? 'File dibaca satu per satu lalu digabung. ' : '') : '') + notes.join('. ');
 };
 const allDocText = typed => [typed].concat(fileDocs.map(d => '=== FILE: ' + d.name + ' ===\n' + d.text.trim())).filter(Boolean).join('\n\n');
 let DOC_CAP = 0;
-const DOC_BUDGET = () => DOC_CAP || ({ gemini: 220000, anthropic: 220000 })[(state.settings || {}).provider] || (typeof claude !== 'undefined' && claude && claude.use ? 120000 : 45000);
-async function extractDoc(tk, text, hasImg, opt) {
- DOC_CAP = 0; try { return await sample.json(extractPrompt(tk, text, hasImg), opt); }
- catch (e) { if (!(e && e.code === 'prompt_too_large' && text.length > 45000)) throw e; DOC_CAP = 45000; $('#goStatus').textContent = 'Dokumen terlalu panjang untuk AI ini; mencoba lagi dengan bagian laporan utama saja…'; try { return await sample.json(extractPrompt(tk, text, hasImg), opt); } finally { DOC_CAP = 0; } }
-}
+const DOC_BUDGET = () => DOC_CAP || Math.min(MULTI_CAP || Infinity, ({ gemini: 220000, anthropic: 220000 })[(state.settings || {}).provider] || (typeof claude !== 'undefined' && claude && claude.use ? 120000 : 45000));
 const PICK_KW = [[5, ['jumlah aset', 'total aset', 'total assets', 'jumlah liabilitas', 'total liabilitas', 'jumlah ekuitas', 'total ekuitas', 'laba bruto', 'laba kotor', 'gross profit', 'laba sebelum pajak', 'profit before', 'laba tahun berjalan', 'laba periode berjalan', 'arus kas dari aktivitas operasi', 'arus kas bersih', 'laba per saham', 'earnings per share', 'pendapatan bersih', 'penjualan bersih', 'net revenue', 'pendapatan bunga', 'saham treasuri', 'saham beredar', 'jumlah saham', 'ditempatkan dan disetor', 'kas dan setara kas pada akhir']],
  [2, ['penyusutan', 'amortisasi', 'modal saham', 'dividen', 'beban keuangan', 'biaya keuangan', 'pinjaman', 'persediaan', 'piutang usaha', 'utang usaha', 'nonpengendali', 'saldo laba', 'aset tetap', 'segmen', 'pemegang saham', 'dalam jutaan', 'dalam miliaran', 'dalam ribuan', 'kredit yang diberikan', 'simpanan nasabah', 'npl', 'kewajiban penyediaan modal', 'premi', 'penggunaan dana', 'harga penawaran']]];
 const PICK_HEAD = /LAPORAN\s+(POSISI\s+KEUANGAN|LABA\s+RUGI|ARUS\s+KAS|PERUBAHAN\s+EKUITAS)|STATEMENTS?\s+OF\s+(FINANCIAL\s+POSITION|PROFIT\s+OR\s+LOSS|CASH\s+FLOWS)|^\s*(NERACA|BALANCE SHEETS?)\s*$/m, PICK_NOTE = /CATATAN\s+ATAS\s+LAPORAN\s+KEUANGAN|NOTES\s+TO\s+THE\s+(CONSOLIDATED\s+)?FINANCIAL/;
@@ -1049,8 +1045,72 @@ function pickText(text, budget) {
  return segs.map((t, i) => pickOne(t, share[i]).replace(/\s+$/, '')).join('\n\n');
 }
 
+// ---------- v10: PDF dibaca di perangkat, banyak file diproses satu per satu ----------
+const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+const IS_CLAUDE = typeof claude !== 'undefined' && !!claude && !!claude.use;
+let pdfLib = null, MULTI_CAP = 0;
+function loadPdfJs() { if (pdfLib) return pdfLib; pdfLib = new Promise((res, rej) => { if (window.pdfjsLib) return res(window.pdfjsLib); const sc = document.createElement('script'); sc.src = PDFJS + 'pdf.min.js'; const to = setTimeout(() => { pdfLib = null; rej(new Error('pembaca PDF tidak termuat')); }, 25000);
+ sc.onload = () => { clearTimeout(to); try { window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + 'pdf.worker.min.js'; res(window.pdfjsLib); } catch (e) { rej(e); } }; sc.onerror = () => { clearTimeout(to); pdfLib = null; rej(new Error('pembaca PDF tidak termuat')); }; document.head.append(sc); }); return pdfLib; }
+async function readPdf(file, status, wantImgs) {
+ const lib = await loadPdfJs(); const doc = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise; const n = doc.numPages, pages = [];
+ for (let i = 1; i <= n; i++) { if (i % 10 === 1) status('Membaca ' + file.name + ': halaman ' + i + ' dari ' + n + '…');
+  const pg = await doc.getPage(i); const tc = await pg.getTextContent(); let out = '', lastY = null;
+  for (const it of tc.items) { const y = it.transform ? Math.round(it.transform[5]) : null; if (lastY !== null && y !== null && Math.abs(y - lastY) > 2) out += '\n'; else if (out && !out.endsWith(' ')) out += ' '; out += it.str; lastY = y; }
+  pages.push(out.replace(/[ \t]+/g, ' ').trim()); if (pg.cleanup) pg.cleanup(); }
+ const scanned = pages.join('').replace(/\s/g, '').length < 80 * n; let imgs = [];
+ if (scanned && wantImgs) { const want = Math.min(wantImgs, 8, n); for (let i = 1; i <= want; i++) { status(file.name + ' berupa hasil pindaian; menyiapkan gambar halaman ' + i + '…'); const pg = await doc.getPage(i); const vp = pg.getViewport({ scale: 1.6 }); const c = document.createElement('canvas'); c.width = vp.width; c.height = vp.height; await pg.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise; imgs.push(await new Promise(r => c.toBlob(b => r(new File([b], file.name + '-hal-' + i + '.jpg', { type: 'image/jpeg' })), 'image/jpeg', 0.85))); } }
+ try { doc.destroy(); } catch (e) {}
+ return { text: scanned ? '' : pages.join('\n\n'), images: imgs, pages: n, scanned };
+}
+async function prepDocs(typed, status) {
+ const docs = (typed ? [{ name: 'Teks tempel', text: typed }] : []).concat(fileDocs.map(d => ({ name: d.name, text: d.text.trim() }))), notes = []; let pics = images.filter(f => !isPdf(f));
+ const inline = !IS_CLAUDE && ['gemini', 'anthropic'].includes(state.settings.provider), imgMax = IS_CLAUDE ? AI_IMG : 8;
+ for (const f of images.filter(isPdf)) {
+  let r = null; try { r = await readPdf(f, status, inline ? 0 : imgMax); } catch (e) { if (e && e.name === 'AbortError') throw e; if (inline) { pics.push(f); notes.push(f.name + ': dibaca langsung oleh AI (pembaca PDF di perangkat tidak tersedia)'); } else notes.push(f.name + ': PDF tidak bisa dibaca di sini; pakai tangkapan layar halamannya'); continue; }
+  if (r.text) { docs.push({ name: f.name, text: r.text }); notes.push(f.name + ': ' + r.pages + ' halaman dibaca'); }
+  else if (inline) { pics.push(f); notes.push(f.name + ': PDF hasil pindaian, dibaca langsung oleh AI'); }
+  else if (r.images.length) { pics = pics.concat(r.images); notes.push(f.name + ': PDF hasil pindaian, ' + r.images.length + ' halaman pertama dikirim sebagai gambar'); }
+  else notes.push(f.name + ': teks tidak terbaca'); }
+ if (IS_CLAUDE && pics.length && !AI_IMG) { notes.push('gambar tidak didukung di tampilan ini dan tidak dipakai'); pics = []; }
+ return { docs, pics, notes, all: docs.map(d => d.name === 'Teks tempel' && docs.length === 1 ? d.text : '=== FILE: ' + d.name + ' ===\n' + d.text).join('\n\n') };
+}
+const lastYear = d => Math.max(0, ...((d && d.financials) || []).map(r => parseInt(r.year) || 0), ...((d && d.kuartal) || []).map(r => (parseInt(r.year) || 0) - 0.5 + (parseInt(r.q) || 0) / 10));
+const annualYear = d => Math.max(0, ...((d && d.financials) || []).filter(r => C.num(r.revenue) !== null || C.num(r.bNII) !== null).map(r => parseInt(r.year) || 0));
+function mergeExtract(list) {
+ list = list.filter(d => d && typeof d === 'object'); if (!list.length) throw { code: 'invalid_json' }; if (list.length === 1) return list[0];
+ const order = [...list].sort((a, b) => annualYear(a) - annualYear(b) || lastYear(a) - lastYear(b)), base = order[order.length - 1], out = Object.assign({}, base);
+ const empty = v => v === null || v === undefined || v === '' || (Array.isArray(v) && !v.length);
+ order.slice(0, -1).reverse().forEach(d => Object.keys(d).forEach(k => { if (!['financials', 'kuartal', 'catatanSumber'].includes(k) && empty(out[k]) && !empty(d[k])) out[k] = d[k]; }));
+ const mergeRows = (key, id) => { const m = new Map(); order.forEach(d => (Array.isArray(d[key]) ? d[key] : []).forEach(r => { const i = id(r); if (!i) return; const cur = m.get(i) || {}; Object.keys(r).forEach(k => { if (C.num(r[k]) !== null || cur[k] === undefined) cur[k] = r[k]; }); m.set(i, cur); })); return [...m.values()]; };
+ out.financials = mergeRows('financials', r => parseInt(r.year) || 0).sort((a, b) => a.year - b.year).slice(-5);
+ out.kuartal = mergeRows('kuartal', r => (parseInt(r.year) && parseInt(r.q)) ? r.year + 'Q' + r.q : 0);
+ out.catatanSumber = [...new Set(order.map(d => String(d.catatanSumber || '').trim()).filter(Boolean))].reverse().join(' | ').slice(0, 1500);
+ return out;
+}
+async function extractAll(tk, prep, opt, status) {
+ const total = prep.docs.reduce((a, d) => a + d.text.length, 0), multi = prep.docs.length > 1 && total > Math.min(DOC_BUDGET(), 120000);
+ if (!multi) { const o = Object.assign({}, opt); if (prep.pics.length) o.images = prep.pics; return extractDoc(tk, prep.all, prep.pics.length > 0, o); }
+ const outs = [], n = prep.docs.length + (prep.pics.length ? 1 : 0); let i = 0;
+ for (const d of prep.docs) { i++; EX_LABEL = 'Langkah 1/2: AI membaca file ' + i + ' dari ' + n + ' (' + d.name + ')…'; status(EX_LABEL); MULTI_CAP = 120000; try { outs.push(await extractDoc(tk, '=== FILE: ' + d.name + ' ===\n' + d.text, false, opt)); } finally { MULTI_CAP = 0; } }
+ if (prep.pics.length) { EX_LABEL = 'Langkah 1/2: AI membaca gambar/PDF pindaian (' + n + ' dari ' + n + ')…'; status(EX_LABEL); outs.push(await extractDoc(tk, '', true, Object.assign({}, opt, { images: prep.pics }))); }
+ EX_LABEL = ''; return mergeExtract(outs);
+}
+let EX_LABEL = '';
+const sleepAbort = (ms, signal) => new Promise((res, rej) => { const t = setTimeout(res, ms); if (signal) signal.addEventListener('abort', () => { clearTimeout(t); rej({ code: 'cancelled' }); }, { once: true }); });
+async function extractDoc(tk, text, hasImg, opt) {
+ DOC_CAP = 0; const st = m => { $('#goStatus').textContent = m; };
+ for (let attempt = 0; ; attempt++) {
+  try { return await sample.json(extractPrompt(tk, text, hasImg), opt); }
+  catch (e) { const c = e && e.code;
+   if (c === 'prompt_too_large' && text.length > 45000 && DOC_CAP !== 45000) { DOC_CAP = 45000; st('Dokumen terlalu panjang untuk AI ini; mencoba lagi dengan bagian laporan utama saja…'); continue; }
+   if (c === 'rate_limited' && attempt < 3) { st('Kuota AI per menit penuh; menunggu 40 detik lalu melanjutkan otomatis…'); await sleepAbort(40000 * (window.__FAST ? 0.001 : 1), opt.signal); if (EX_LABEL) st(EX_LABEL); continue; }
+   if ((c === 'invalid_json' || c === 'overloaded') && attempt < 2) { if (c === 'invalid_json' && text.length > 60000 && !DOC_CAP) DOC_CAP = 60000; st('Jawaban AI belum lengkap; mencoba lagi…'); await sleepAbort(3000 * (window.__FAST ? 0.001 : 1), opt.signal); if (EX_LABEL) st(EX_LABEL); continue; }
+   DOC_CAP = 0; throw e; }
+ }
+}
+
 // ---------- AI ----------
-const errCopy = e => ({ not_granted: 'Izin AI ditolak. Anda masih bisa mengisi data manual.', rate_limited: 'Kuota AI habis atau terlalu cepat. Tunggu beberapa menit (kuota gratis pulih berkala) lalu coba lagi.', pdf_unsupported: 'Penyedia ini tidak bisa membaca PDF. Tempel teks laporannya, atau pakai Gemini.', invalid_json: 'Jawaban AI tidak terbaca. Coba lagi atau kurangi dokumen.', prompt_too_large: 'Dokumen terlalu panjang. Tempel bagian laporan keuangan utama saja.', overloaded: 'Server AI sedang sibuk. Coba beberapa saat lagi.', no_key: 'Kunci API belum diisi. Buka tab Pengaturan.', bad_key: 'Kunci API ditolak. Periksa di tab Pengaturan.', network: 'Tidak ada koneksi internet atau permintaan diblokir.', http: 'Server AI menolak permintaan.', image_rejected: 'Salah satu gambar tidak bisa dibaca.', cancelled: 'Dihentikan.' }[e?.code] || ('Gagal: ' + (e?.message || 'kesalahan tidak diketahui')));
+const errCopy = e => ({ not_granted: 'Izin AI ditolak. Anda masih bisa mengisi data manual.', rate_limited: 'Kuota AI habis atau terlalu cepat. Tunggu beberapa menit (kuota gratis pulih berkala) lalu coba lagi.', pdf_unsupported: 'Penyedia ini tidak bisa membaca PDF. Tempel teks laporannya, atau pakai Gemini.', invalid_json: 'Jawaban AI tidak terbaca setelah beberapa kali dicoba. Coba lagi sebentar lagi.', prompt_too_large: 'Dokumen terlalu panjang. Tempel bagian laporan keuangan utama saja.', overloaded: 'Server AI sedang sibuk. Coba beberapa saat lagi.', no_key: 'Kunci API belum diisi. Buka tab Pengaturan.', bad_key: 'Kunci API ditolak. Periksa di tab Pengaturan.', network: 'Tidak ada koneksi internet atau permintaan diblokir.', http: 'Server AI menolak permintaan.', image_rejected: 'Salah satu gambar tidak bisa dibaca.', cancelled: 'Dihentikan.' }[e?.code] || ('Gagal: ' + (e?.message || 'kesalahan tidak diketahui')));
 
 function extractPrompt(tk, text, hasImg) {
  const keys = FIELDS.map(f => f[0] + ' (' + f[1] + ')').join(', ');
@@ -1098,8 +1158,9 @@ $('#goBtn').onclick = async () => {
  try {
   WANT_GROUND = !text && !images.length && !!state.settings.ground && state.settings.provider === 'gemini'; LAST_SOURCES = null;
   $('#goStatus').textContent = 'Langkah 1/2: membaca dokumen & mengekstrak data keuangan… (bisa 30–120 detik)';
-  const opt = { signal: ctl.signal }; if (images.length) opt.images = images;
-  const d = await extractDoc(tk, text, images.length > 0, opt);
+  const prep = await prepDocs($('#doctext').value.trim(), m => { $('#goStatus').textContent = m; });
+  $('#goStatus').textContent = 'Langkah 1/2: AI membaca dokumen & mengekstrak data keuangan… (bisa 30–120 detik)';
+  const d = await extractAll(tk, prep, { signal: ctl.signal, tier: 'complex' }, m => { $('#goStatus').textContent = m; });
   if (!d || typeof d !== 'object') throw { code: 'invalid_json' };
   const s = Object.assign(blankStock(tk), d, { ticker: tk, updated: new Date().toISOString(), source: (text || images.length) ? 'dokumen pengguna' : 'pengetahuan AI' });
   s.financials = C.sortYears((d.financials || []).map(r => { const o = { year: parseInt(r.year) }; FIELDS.forEach(([k]) => o[k] = C.num(r[k])); return o; }));
@@ -1108,12 +1169,12 @@ $('#goBtn').onclick = async () => {
   if (price !== null) s.price = price; else if (state.stocks[tk]?.price) s.price = state.stocks[tk].price;
   s.notes = state.stocks[tk]?.notes || ''; s.chat = []; ['priceHist', 'checks', 'showIns', 'showProp', 'showBank'].forEach(k => { if (state.stocks[tk] && state.stocks[tk][k] !== undefined) s[k] = state.stocks[tk][k]; });
   if (LAST_SOURCES && LAST_SOURCES.length) { s.sources = LAST_SOURCES; s.source = 'pencarian Google oleh AI'; } WANT_GROUND = false; LAST_SOURCES = null;
-  s.docText = pickText(text, 400000); s.files = fileDocs.map(d => d.name).concat(images.map(f => f.name)); s.verified = false;
+  s.docText = pickText(prep.all, IS_CLAUDE ? 60000 : 400000); s.pdfNote = prep.notes.join('; '); s.files = fileDocs.map(d => d.name).concat(images.map(f => f.name)); s.verified = false;
   audit(s); s.history = ((state.stocks[tk] && state.stocks[tk].history) || []).slice(-49); state.stocks[tk] = s; snapHist(s, true); dirty.add(tk); save(); openStock(tk);
   if (s.issues.some(i => i.lvl === 'kritis')) { $('#goStatus').textContent = 'Berhenti: pengawal menemukan data yang melanggar aturan akuntansi. Periksa tab Ringkasan, koreksi di tab Laporan keuangan, lalu tekan "Data sudah saya periksa".'; return; }
   $('#goStatus').textContent = 'Langkah 2/2: menyusun analisis dari rasio yang sudah dihitung…';
   await runNarrative(tk, ctl.signal);
-  $('#goStatus').textContent = 'Selesai. ' + (s.issues.length || (s.unverified || []).length ? 'Ada catatan dari pengawal; lihat tab Ringkasan.' : 'Semua uji pengawal lulus.') + ' Tetap cocokkan dengan laporan resmi.';
+  $('#goStatus').textContent = (s.pdfNote ? 'Catatan file: ' + s.pdfNote + '. ' : '') + 'Selesai. ' + (s.issues.length || (s.unverified || []).length ? 'Ada catatan dari pengawal; lihat tab Ringkasan.' : 'Semua uji pengawal lulus.') + ' Tetap cocokkan dengan laporan resmi.';
  } catch (e) { $('#goStatus').textContent = errCopy(e); if (e?.code === 'not_granted') { sample = null; $('#noAi').classList.remove('hidden'); } }
  finally { WANT_GROUND = false; btn.disabled = false; $('#stopBtn').classList.add('hidden'); }
 };
@@ -1578,7 +1639,7 @@ function makeSample() {
   const d = await res.json(); const text = (d.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
   o.onText && o.onText({ text, delta: text }); return { text, truncated: d.stop_reason === 'max_tokens' };
  };
- call.json = async (input, o = {}) => { const { text, truncated } = await call(input, { ...o, maxTokens: 16000 }); if (truncated) throw { code: 'invalid_json', text };
+ call.json = async (input, o = {}) => { const { text, truncated } = await call(input, { ...o, maxTokens: 16000, json: true }); if (truncated) throw { code: 'invalid_json', text };
   const c = text.replace(/```json|```/g, ''); const a = c.indexOf('{'), b = c.lastIndexOf('}'); try { return JSON.parse(c.slice(a, b + 1)); } catch (e) { throw { code: 'invalid_json', text }; } };
  return call;
 }
@@ -1594,7 +1655,7 @@ async function callGemini(msgs, o, key, model) {
   for (const f of o.images) parts.push({ inline_data: { mime_type: f.type || 'image/jpeg', data: await toB64(f) } });
   last.parts = [...parts, ...last.parts]; }
  let res;
- try { res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent', { method: 'POST', signal: o.signal, headers: { 'content-type': 'application/json', 'x-goog-api-key': key }, body: JSON.stringify({ contents, ...(WANT_GROUND ? { tools: [{ google_search: {} }] } : {}), generationConfig: { temperature: 0, maxOutputTokens: Math.max(o.maxTokens || 8000, 2048) } }) }); }
+ try { res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent', { method: 'POST', signal: o.signal, headers: { 'content-type': 'application/json', 'x-goog-api-key': key }, body: JSON.stringify({ contents, ...(WANT_GROUND ? { tools: [{ google_search: {} }] } : {}), generationConfig: Object.assign({ temperature: 0, maxOutputTokens: o.json ? 40000 : Math.max(o.maxTokens || 8000, 2048) }, o.json && !WANT_GROUND ? { responseMimeType: 'application/json' } : {}) }) }); }
  catch (e) { throw { code: e.name === 'AbortError' ? 'cancelled' : 'network', message: e.message }; }
  if (!res.ok) throw await httpErr(res);
  const d = await res.json(); const c = (d.candidates || [])[0] || {};
@@ -2135,6 +2196,6 @@ function refreshMode() {
 startApp();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 async function startApp() { await loadStore(); renderList(); refreshMode(); renderAlerts(); checkQuota(); }
-window.__T = { pickText, readDocFile, G, C, compute, parseNum, state, openStock, renderPorto, blankStock, exportReport };
+window.__T = { mergeExtract, pickText, readDocFile, G, C, compute, parseNum, state, openStock, renderPorto, blankStock, exportReport };
 })();
 </script></body></html>
