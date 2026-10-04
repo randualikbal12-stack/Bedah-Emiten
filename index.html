@@ -266,6 +266,7 @@ details.sec>summary{font-size:15.5px;padding:13px 0}
  <div class="panel"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Posisi</h2><span class="small mute">Isi harga terakhir untuk melihat untung/rugi belum terealisasi</span><button class="btn ghost sm hidden" id="pxAll">Perbarui semua harga online</button><button class="btn ghost sm" id="pxXls">Unduh Excel portofolio</button></div><p class="small" id="pxAllMsg"></p>
   <div class="scroll" style="margin-top:10px"><table id="posTbl"></table></div><div id="posSum" style="margin-top:12px"></div></div>
  <div class="panel"><h2>Statistik jurnal</h2><div id="statBox"></div></div>
+ <div class="panel"><h2>Tinjauan AI atas portofolio</h2><div id="aiPfBox"></div></div>
  <div class="panel"><h2>Perkembangan modal vs deposito</h2><div id="growBox"></div></div>
  <div class="panel"><h2>Impor dari sekuritas (CSV)</h2><div id="impBox"></div></div>
  <div class="panel"><h2>Alokasi portofolio</h2><div id="allocBox"></div></div>
@@ -1721,6 +1722,7 @@ function renderCompare() {
  <p class="small mute">Angka hijau tebal = terbaik di antara emiten yang dibandingkan. ${allBank ? '' : 'Membandingkan bank dengan non-bank kurang tepat; bandingkan emiten dari sektor yang sama.'}</p>
  <h3>Peringkat keseluruhan</h3><ol class="rank">${avgRank.map(o => `<li><b>${o.k}</b> <span class="small mute">rata-rata peringkat ${o.r === null ? '–' : nf(o.r, 1)}</span></li>`).join('')}</ol>
  <p class="small mute">Peringkat rata-rata dari semua ukuran yang punya arah jelas (makin tinggi atau makin rendah makin baik). Ini alat bantu menyaring, bukan rekomendasi.</p>`;
+ aiCompare(ks, avgRank);
 }
 
 // ---------- portofolio ----------
@@ -1957,10 +1959,41 @@ function renderHome() {
   h += `<div class="row" style="justify-content:space-between;margin:18px 2px 8px"><h2 style="margin:0">Saham yang dibedah</h2><button class="btn ghost sm" data-go="daftar">Semua</button></div><div class="cards">${cards.slice(0, 6).map(stockCard).join('')}</div>`;
  } else h += `<div class="panel"><h2>Mulai dari sini</h2><ol class="steps"><li><b>Bedah satu saham.</b> Ketik kodenya (mis. BBCA). Lebih akurat jika Anda lampirkan PDF laporan keuangan dari idx.co.id.</li><li><b>Baca Ringkasan.</b> Skor, tanda bahaya, dan label Murah / Wajar / Mahal.</li><li><b>Catat transaksi</b> di Portofolio agar untung/rugi dan imbal hasil terhitung otomatis.</li><li><b>Pasang target harga</b> di Lainnya → Rencana.</li></ol><p class="small mute">Baru di pasar modal? Buka Lainnya → Belajar.</p></div>`;
  const J = []; ks.forEach(k => (state.stocks[k].history || []).forEach((o, i) => J.push(Object.assign({ tk: k, i }, o)))); J.sort((a, b) => b.date.localeCompare(a.date) || b.i - a.i);
- if (J.length) h += `<div class="panel" id="jurnalBox"><h2>Jurnal saham</h2><p class="small mute">Catatan otomatis setiap kali Anda membedah saham: tanggal, file yang dipakai, angka utama, dan penilaian saat itu. Ketuk untuk membuka hasil bedahnya.</p>${J.slice(0, jurnalAll ? 300 : 5).map(jRow).join('')}${J.length > 5 ? `<button class="btn ghost sm" id="jMore">${jurnalAll ? 'Tampilkan 5 terbaru saja' : 'Lihat semua (' + J.length + ' catatan)'}</button>` : ''}</div>`;
- box.innerHTML = h; const jm = $('#jMore'); if (jm) jm.onclick = () => { jurnalAll = !jurnalAll; renderHome(); };
+ if (J.length) h += `<div class="panel" id="jurnalBox"><h2>Jurnal saham</h2><p class="small mute">Catatan otomatis setiap kali Anda membedah saham: tanggal, file yang dipakai, angka utama, dan penilaian saat itu. Ketuk untuk membuka hasil bedahnya.</p>${J.slice(0, jurnalAll ? 300 : 5).map(jRow).join('')}${J.length > 5 ? `<button class="btn ghost sm" id="jMore">${jurnalAll ? 'Tampilkan 5 terbaru saja' : 'Lihat semua (' + J.length + ' catatan)'}</button>` : ''}${aiBtn('aiJ', 'jurnal', 'Ringkas jurnal dengan AI')}</div>`;
+ box.innerHTML = h; const jm = $('#jMore'); if (jm) jm.onclick = () => { jurnalAll = !jurnalAll; renderHome(); }; aiJurnal(J);
  box.querySelectorAll('[data-open]').forEach(b => b.onclick = () => openStock(b.dataset.open));
 }
+// ---------- v9: kemampuan AI tambahan (ringkasan jurnal, tafsir perbandingan, tinjauan portofolio) ----------
+const numsOf = o => { const a = []; const w = v => { if (typeof v === 'number' && isFinite(v)) a.push(v); else if (v && typeof v === 'object') Object.values(v).forEach(w); }; w(o); return a; };
+function stockBrief(k) { const s = state.stocks[k], R = compute(s), L = R.last;
+ return { kode: k, nama: s.nama || '', sektor: s.sektor || '', jenis: s.jenisUsaha, tahunLaporan: L.year || null, harga: C.num(s.price), labelHarga: verdictOf(R).t, skorKualitas: R.quality, PER: L.per, PBV: L.pbv, ROE: L.roe, marginLabaBersih: L.npm, DER: R.isFin ? null : L.der, dividendYield: L.divYield, arusKasOperasiPerLaba: L.cfoToNi, pertumbuhanPendapatan: L.revGrowth, pertumbuhanLaba: L.niGrowth, CAGRpendapatan: R.cagrRev, CAGRlaba: R.cagrNi, nilaiWajar: R.fair, marginOfSafety: R.mos, piotroski: R.pio ? R.pio.score : null, tandaBahaya: R.flags, temuanPengawal: (s.issues || []).length + (s.unverified || []).length, sumberData: s.source || '' }; }
+const AI_TAIL = '\nSemua angka di DATA sudah dihitung aplikasi dengan rumus pasti (desimal 0.15 = 15%). JANGAN menghitung ulang, JANGAN menyebut angka persen atau kelipatan yang tidak ada di DATA. Bahasa Indonesia yang mudah dipahami investor pemula, lugas, jujur, tanpa hype. Format Markdown sederhana: judul "#### " dan poin "- ". Akhiri dengan satu baris: "Ini analisis edukatif, bukan rekomendasi beli/jual."\nDATA:\n';
+const aiNoteHtml = k => { const n = (state.aiNotes || {})[k]; if (!n) return ''; return `<div class="narr" style="margin-top:10px">${md(n.text)}</div>${n.bad && n.bad.length ? `<div class="issue"><b>Angka di tulisan AI yang tidak cocok dengan hitungan aplikasi:</b> ${esc(n.bad.join(', '))}. Pegang angka di tabel.</div>` : ''}<p class="small mute">Disusun ${new Date(n.at).toLocaleString('id-ID')} dari angka yang dihitung aplikasi.</p>`; };
+async function aiWrite(box, btn, key, prompt, allowed) {
+ if (!sample) { box.innerHTML = '<p class="small warn" style="margin-top:8px">AI belum aktif. Buka Lainnya → Pengaturan.</p>'; return; }
+ btn.disabled = true; box.innerHTML = '<p class="mute" style="margin-top:8px">AI sedang menyusun…</p>';
+ try { const { text } = await sample(prompt, { signal: (ctl = new AbortController()).signal, onText: ({ text }) => { box.innerHTML = '<div class="narr" style="margin-top:10px">' + md(text) + '</div>'; } });
+  state.aiNotes = Object.assign({}, state.aiNotes || {}); state.aiNotes[key] = { text, at: new Date().toISOString(), bad: G.narrativeCheck(text, allowed) };
+  const ks = Object.keys(state.aiNotes); if (ks.length > 12) ks.sort((a, b) => state.aiNotes[a].at.localeCompare(state.aiNotes[b].at)).slice(0, ks.length - 12).forEach(x => delete state.aiNotes[x]);
+  save(); box.innerHTML = aiNoteHtml(key);
+ } catch (e) { box.innerHTML = '<p class="small down" style="margin-top:8px">' + esc(errCopy(e)) + '</p>'; }
+ btn.disabled = false; }
+const aiBtn = (id, key, label) => `<div class="row" style="margin-top:10px"><button class="btn ghost sm" id="${id}">${(state.aiNotes || {})[key] ? 'Susun ulang' : label}</button></div><div id="${id}Box">${aiNoteHtml(key)}</div>`;
+function aiJurnal(J) { const b = $('#aiJ'); if (!b) return; b.onclick = () => { const data = { saham: Object.keys(state.stocks).map(stockBrief), jurnal: J.slice(0, 40).map(o => ({ kode: o.tk, tanggal: o.date, harga: o.price, labelHarga: o.verdict, skor: o.quality, PER: o.per, PBV: o.pbv, ROE: o.roe, nilaiWajar: o.fair, marginOfSafety: o.mos, file: o.files })) };
+  aiWrite($('#aiJBox'), b, 'jurnal', RULES + '\nTugas: ringkas JURNAL SAHAM pengguna. Bagian wajib:\n#### Gambaran umum (berapa saham, kondisi umumnya)\n#### Paling menarik menurut angka (sebut alasan dari DATA)\n#### Yang perlu diwaspadai (tanda bahaya, pertumbuhan turun, valuasi mahal, temuan pengawal)\n#### Perubahan sejak catatan sebelumnya (hanya jika ada saham dengan lebih dari satu catatan; jika tidak ada, tulis belum ada pembanding)\n#### Yang sebaiknya dicek berikutnya (3-5 butir konkret)' + AI_TAIL + JSON.stringify(data).slice(0, 60000), numsOf(data)); }; }
+function aiCompare(ks, avgRank) { const key = 'cmp:' + [...ks].sort().join(','); const box = $('#cmpBox'); box.insertAdjacentHTML('beforeend', aiBtn('aiC', key, 'Minta AI menafsirkan perbandingan'));
+ $('#aiC').onclick = () => { const data = { saham: ks.map(stockBrief), peringkatRataRata: avgRank.map(o => ({ kode: o.k, rataRataPeringkat: o.r })) };
+  aiWrite($('#aiCBox'), $('#aiC'), key, RULES + '\nTugas: tafsirkan PERBANDINGAN beberapa saham. Bagian wajib:\n#### Kesimpulan singkat\n#### Keunggulan dan kelemahan tiap saham (satu poin per saham)\n#### Mana yang lebih murah dibanding kualitasnya, dan kenapa\n#### Catatan (mis. beda sektor sehingga kurang sebanding, data kurang lengkap)' + AI_TAIL + JSON.stringify(data).slice(0, 60000), numsOf(data)); }; }
+function aiPorto(TR) { const box = $('#aiPfBox'); if (!box) return; const key = 'pf:' + (state.pfSel || 'Semua');
+ const tks = [...new Set(TR.map(t => t.ticker))].sort(); if (!tks.length) { box.innerHTML = '<p class="small mute">Tinjauan muncul setelah ada transaksi.</p>'; return; }
+ box.innerHTML = '<p class="small mute">AI menilai portofolio Anda dari angka yang sudah dihitung: sebaran, untung/rugi, dan kualitas saham yang dipegang.</p>' + aiBtn('aiP', key, 'Minta tinjauan AI');
+ $('#aiP').onclick = () => { const today = new Date().toLocaleDateString('sv-SE'); let tv = 0, tc = 0, all = true;
+  const pos = tks.map(k => { const p = C.position(TR.filter(t => t.ticker === k)), px = C.num(state.prices[k] ?? state.stocks[k]?.price), val = px !== null ? p.qty * px : null; if (p.qty) { tc += p.cost; if (val === null) all = false; else tv += val; }
+   return { kode: k, lot: p.lots, hargaRataRata: p.avg, modal: p.cost, hargaTerakhir: px, nilaiPasar: val, untungRugiBerjalan: val !== null && p.cost ? (val - p.cost) / p.cost : null, terealisasi: p.realized, dividen: p.divs, bedah: state.stocks[k] ? stockBrief(k) : 'belum dibedah' }; });
+  if (all && tv > 0) pos.forEach(o => { o.porsiPortofolio = o.nilaiPasar / tv; });
+  const S = C.sellStats(TR), data = { portofolio: state.pfSel || 'Semua', totalModal: tc, nilaiPasar: all ? tv : null, hasilBerjalan: all && tc ? (tv - tc) / tc : null, imbalHasilTahunan: all ? C.xirr(C.tradeFlows(TR).concat(tv > 0 ? [{ date: today, amount: tv }] : [])) : null, posisi: pos, statistikJual: { jumlah: S.n, winRate: S.winRate, profitFactor: S.profitFactor, rataRataUntung: S.avgWinPct, rataRataRugi: S.avgLossPct } };
+  aiWrite($('#aiPBox'), $('#aiP'), key, RULES + '\nTugas: tinjau PORTOFOLIO pengguna. Bagian wajib:\n#### Gambaran umum\n#### Sebaran dan konsentrasi (porsi tiap saham, sektor)\n#### Saham yang berjalan baik dan yang membebani\n#### Kualitas saham yang dipegang (pakai data bedah; sebut yang belum dibedah)\n#### Risiko utama\n#### Yang sebaiknya dicek berikutnya (3-5 butir konkret, bukan perintah beli/jual)' + AI_TAIL + JSON.stringify(data).slice(0, 60000), numsOf(data)); }; }
+
 let jurnalAll = false;
 const VC = { Murah: 'vg', Wajar: 'vm', Mahal: 'vb' };
 function jRow(o) { const kv = [o.year ? 'Laporan ' + o.year : null, o.rev != null ? 'Pendapatan ' + big(o.rev) : null, o.ni != null ? 'Laba ' + big(o.ni) : null, o.roe != null ? 'ROE ' + pct(o.roe) : null, o.per != null ? 'PER ' + x(o.per) : null, o.pbv != null ? 'PBV ' + x(o.pbv) : null, o.fair != null ? 'Nilai wajar ' + rp(o.fair) : null, o.quality != null ? 'Skor ' + o.quality : null].filter(Boolean).join(' · ');
@@ -2031,7 +2064,7 @@ function renderCalc() {
 }
 // ---------- v7: statistik jurnal, modal vs deposito, proyeksi dividen ----------
 function renderPorto7() {
- const TR = pfTrades(), today = new Date().toLocaleDateString('sv-SE');
+ const TR = pfTrades(), today = new Date().toLocaleDateString('sv-SE'); aiPorto(TR);
  const sb = $('#statBox'); if (sb) { const S = C.sellStats(TR);
   if (!S.n && !Object.keys(S.monthly).length) sb.innerHTML = '<p class="small mute">Statistik muncul setelah ada transaksi jual atau dividen.</p>';
   else { const ms = Object.keys(S.monthly).filter(Boolean).sort().slice(-12);
